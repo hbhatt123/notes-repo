@@ -677,6 +677,11 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
+.company-notes-card {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
 .behavioral-question {
   font-weight: 600;
   font-size: 0.94rem;

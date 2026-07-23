@@ -25,6 +25,10 @@ const STORAGE_KEYS = {
   topicsDone: "prep_topics_done",
   behavioralPrepared: "prep_behavioral_prepared",
   behavioralNotes: "prep_behavioral_notes",
+  companiesDone: "prep_companies_done",
+  companyNotes: "prep_company_notes",
+  projectsDone: "prep_projects_done",
+  projectNotes: "prep_project_notes",
   streak: "prep_streak",
   name: "prep_name",
 };
@@ -139,12 +143,15 @@ const CATEGORY_META = {
   genai: { name: "GenAI & LLMs", icon: "✨", route: "genai" },
   sysdesign: { name: "ML System Design", icon: "🏗️", route: "sysdesign" },
   behavioral: { name: "Behavioral", icon: "🎤", route: "behavioral" },
+  companies: { name: "Company Prep", icon: "🏢", route: "companies" },
+  projects: { name: "Projects", icon: "💼", route: "projects" },
 };
 
 // ---------------------------------------------------------------
 // 4. Router
-// Supported hashes: #dashboard #dsa #mldl #genai #sysdesign
-//                   #behavioral #topic/<id>
+// Supported hashes: #dashboard #dsa #dsa/<catId> #mldl #genai #sysdesign
+//                   #topic/<id> #behavioral #companies #companies/<id>
+//                   #projects #projects/<id>
 // ---------------------------------------------------------------
 
 function parseHash() {
@@ -183,6 +190,14 @@ function render() {
     case "behavioral":
       node = renderBehavioral();
       break;
+    case "companies":
+      node = param ? renderCompanyDetail(param) : renderCompanies();
+      activeRoute = "companies";
+      break;
+    case "projects":
+      node = param ? renderProjectDetail(param) : renderProjects();
+      activeRoute = "projects";
+      break;
     case "dashboard":
     default:
       node = renderDashboard();
@@ -218,8 +233,14 @@ function renderDashboard() {
   const totalBehavioral = BEHAVIORAL_QUESTIONS.length;
   const donePrepared = getDoneSet(STORAGE_KEYS.behavioralPrepared).size;
 
-  const grandTotal = totalDsa + totalTopics + totalBehavioral;
-  const grandDone = doneDsa + doneTopics + donePrepared;
+  const totalCompanies = COMPANIES.length;
+  const doneCompanies = getDoneSet(STORAGE_KEYS.companiesDone).size;
+
+  const totalProjects = PROJECTS.length;
+  const doneProjects = getDoneSet(STORAGE_KEYS.projectsDone).size;
+
+  const grandTotal = totalDsa + totalTopics + totalBehavioral + totalCompanies + totalProjects;
+  const grandDone = doneDsa + doneTopics + donePrepared + doneCompanies + doneProjects;
   const overallPct = pct(grandDone, grandTotal);
 
   const streak = getStreak();
@@ -302,6 +323,18 @@ function renderDashboard() {
       count: totalBehavioral,
       done: donePrepared,
       route: "behavioral",
+    },
+    {
+      key: "companies",
+      count: totalCompanies,
+      done: doneCompanies,
+      route: "companies",
+    },
+    {
+      key: "projects",
+      count: totalProjects,
+      done: doneProjects,
+      route: "projects",
     },
   ];
 
@@ -675,6 +708,270 @@ function renderBehavioral() {
     });
 
     list.appendChild(card);
+  });
+
+  return container;
+}
+
+// ---------------------------------------------------------------
+// 5f. Render: Company Prep
+// ---------------------------------------------------------------
+
+function renderCompanies() {
+  const doneSet = getDoneSet(STORAGE_KEYS.companiesDone);
+  const doneCount = COMPANIES.filter((c) => doneSet.has(c.id)).length;
+
+  const container = el(`
+    <section>
+      <div class="section-header">
+        <h2 class="section-title"><span>🏢</span> Company Prep</h2>
+        <p class="section-subtitle">${doneCount} / ${COMPANIES.length} companies marked prepared. Click a card to open its prep plan.</p>
+      </div>
+      <div class="topic-grid" id="company-grid"></div>
+    </section>
+  `);
+
+  const grid = container.querySelector("#company-grid");
+
+  COMPANIES.forEach((c) => {
+    const isDone = doneSet.has(c.id);
+    const card = el(`
+      <div class="topic-card ${isDone ? "is-done" : ""}" data-company="${c.id}">
+        <div class="topic-card-top">
+          <span class="topic-title-link">${escapeHtml(c.name)}</span>
+        </div>
+        <div class="topic-summary">Target: ${escapeHtml(c.targetDate || "TBD")} · ${c.rounds.length} round${c.rounds.length === 1 ? "" : "s"} · ${c.focusAreas.length} focus area${c.focusAreas.length === 1 ? "" : "s"}</div>
+        <div class="topic-card-bottom">
+          <label class="checkbox-row">
+            <input type="checkbox" ${isDone ? "checked" : ""} />
+            Prepared
+          </label>
+        </div>
+      </div>
+    `);
+
+    card.querySelector(".topic-title-link").addEventListener("click", () => {
+      location.hash = `#companies/${c.id}`;
+    });
+
+    card.querySelector('input[type="checkbox"]').addEventListener("change", () => {
+      toggleDone(STORAGE_KEYS.companiesDone, c.id);
+      render();
+    });
+
+    grid.appendChild(card);
+  });
+
+  return container;
+}
+
+function renderCompanyDetail(id) {
+  const company = COMPANIES.find((c) => c.id === id);
+
+  if (!company) {
+    return el(`
+      <section>
+        <div class="empty-note">Company not found. <a href="#companies">Go back to Company Prep</a>.</div>
+      </section>
+    `);
+  }
+
+  const doneSet = getDoneSet(STORAGE_KEYS.companiesDone);
+  const isDone = doneSet.has(company.id);
+  const allNotes = readJSON(STORAGE_KEYS.companyNotes, {});
+  const noteValue = allNotes[company.id] || "";
+
+  const roundsHtml = company.rounds.map((r) => `<li>${escapeHtml(r)}</li>`).join("");
+  const focusHtml = company.focusAreas.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
+
+  const resourcesHtml = company.resources && company.resources.length
+    ? `<div class="attachments-box">
+         <h3>Resources</h3>
+         <ul>${company.resources
+           .map((r) => `<li><a href="${escapeHtml(r.href)}" target="_blank" rel="noopener">🔗 ${escapeHtml(r.label)}</a></li>`)
+           .join("")}</ul>
+       </div>`
+    : "";
+
+  const container = el(`
+    <section>
+      <a class="back-link" href="#companies">← Back to Company Prep</a>
+      <div class="topic-detail-card">
+        <div class="topic-detail-head">
+          <div>
+            <div class="topic-detail-title">🏢 ${escapeHtml(company.name)}</div>
+            <span class="tag tag-core">Target: ${escapeHtml(company.targetDate || "TBD")}</span>
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="detail-checkbox" ${isDone ? "checked" : ""} />
+            Mark prepared
+          </label>
+        </div>
+
+        <div class="keypoints-box">
+          <h3>Interview Rounds</h3>
+          <ul>${roundsHtml}</ul>
+        </div>
+
+        <div class="keypoints-box">
+          <h3>Focus Areas</h3>
+          <ul>${focusHtml}</ul>
+        </div>
+
+        ${resourcesHtml}
+
+        <div class="behavioral-card company-notes-card">
+          <div class="behavioral-question">Your prep notes</div>
+          <textarea class="behavioral-notes" placeholder="Jot anything specific to this company's process, comp notes, referral contacts, practice plan, etc. — autosaves as you type.">${escapeHtml(noteValue)}</textarea>
+          <div class="behavioral-footer">
+            <span class="autosave-note" data-status>Autosaves locally</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  `);
+
+  container.querySelector("#detail-checkbox").addEventListener("change", () => {
+    toggleDone(STORAGE_KEYS.companiesDone, company.id);
+    render();
+  });
+
+  const textarea = container.querySelector(".behavioral-notes");
+  const statusEl = container.querySelector("[data-status]");
+  textarea.addEventListener("input", () => {
+    clearTimeout(notesSaveTimer);
+    const notes = readJSON(STORAGE_KEYS.companyNotes, {});
+    notes[company.id] = textarea.value;
+    notesSaveTimer = setTimeout(() => {
+      writeJSON(STORAGE_KEYS.companyNotes, notes);
+      recordActivity();
+      if (statusEl) {
+        statusEl.textContent = "Saved ✓";
+        setTimeout(() => {
+          if (statusEl) statusEl.textContent = "Autosaves locally";
+        }, 1500);
+      }
+    }, 500);
+  });
+
+  return container;
+}
+
+// ---------------------------------------------------------------
+// 5g. Render: Projects
+// ---------------------------------------------------------------
+
+function renderProjects() {
+  const doneSet = getDoneSet(STORAGE_KEYS.projectsDone);
+  const doneCount = PROJECTS.filter((p) => doneSet.has(p.id)).length;
+
+  const container = el(`
+    <section>
+      <div class="section-header">
+        <h2 class="section-title"><span>💼</span> Projects</h2>
+        <p class="section-subtitle">${doneCount} / ${PROJECTS.length} projects marked prepared. Click a card to open its notes.</p>
+      </div>
+      <div class="topic-grid" id="project-grid"></div>
+    </section>
+  `);
+
+  const grid = container.querySelector("#project-grid");
+
+  PROJECTS.forEach((p) => {
+    const isDone = doneSet.has(p.id);
+    const card = el(`
+      <div class="topic-card ${isDone ? "is-done" : ""}" data-project="${p.id}">
+        <div class="topic-card-top">
+          <span class="topic-title-link">${escapeHtml(p.title)}</span>
+        </div>
+        <div class="topic-summary">${escapeHtml(p.blurb || "")}</div>
+        <div class="topic-card-bottom">
+          <label class="checkbox-row">
+            <input type="checkbox" ${isDone ? "checked" : ""} />
+            Prepared
+          </label>
+        </div>
+      </div>
+    `);
+
+    card.querySelector(".topic-title-link").addEventListener("click", () => {
+      location.hash = `#projects/${p.id}`;
+    });
+
+    card.querySelector('input[type="checkbox"]').addEventListener("change", () => {
+      toggleDone(STORAGE_KEYS.projectsDone, p.id);
+      render();
+    });
+
+    grid.appendChild(card);
+  });
+
+  return container;
+}
+
+function renderProjectDetail(id) {
+  const project = PROJECTS.find((p) => p.id === id);
+
+  if (!project) {
+    return el(`
+      <section>
+        <div class="empty-note">Project not found. <a href="#projects">Go back to Projects</a>.</div>
+      </section>
+    `);
+  }
+
+  const doneSet = getDoneSet(STORAGE_KEYS.projectsDone);
+  const isDone = doneSet.has(project.id);
+  const allNotes = readJSON(STORAGE_KEYS.projectNotes, {});
+  const noteValue = allNotes[project.id] || "";
+
+  const container = el(`
+    <section>
+      <a class="back-link" href="#projects">← Back to Projects</a>
+      <div class="topic-detail-card">
+        <div class="topic-detail-head">
+          <div>
+            <div class="topic-detail-title">💼 ${escapeHtml(project.title)}</div>
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="detail-checkbox" ${isDone ? "checked" : ""} />
+            Mark prepared
+          </label>
+        </div>
+        <p class="topic-detail-summary">${escapeHtml(project.blurb || "")}</p>
+
+        <div class="behavioral-card company-notes-card">
+          <div class="behavioral-question">Your prep notes</div>
+          <textarea class="behavioral-notes" placeholder="What it is, your role, tech stack, impact/results, questions you might get asked about it — autosaves as you type.">${escapeHtml(noteValue)}</textarea>
+          <div class="behavioral-footer">
+            <span class="autosave-note" data-status>Autosaves locally</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  `);
+
+  container.querySelector("#detail-checkbox").addEventListener("change", () => {
+    toggleDone(STORAGE_KEYS.projectsDone, project.id);
+    render();
+  });
+
+  const textarea = container.querySelector(".behavioral-notes");
+  const statusEl = container.querySelector("[data-status]");
+  textarea.addEventListener("input", () => {
+    clearTimeout(notesSaveTimer);
+    const notes = readJSON(STORAGE_KEYS.projectNotes, {});
+    notes[project.id] = textarea.value;
+    notesSaveTimer = setTimeout(() => {
+      writeJSON(STORAGE_KEYS.projectNotes, notes);
+      recordActivity();
+      if (statusEl) {
+        statusEl.textContent = "Saved ✓";
+        setTimeout(() => {
+          if (statusEl) statusEl.textContent = "Autosaves locally";
+        }, 1500);
+      }
+    }, 500);
   });
 
   return container;

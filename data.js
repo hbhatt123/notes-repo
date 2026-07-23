@@ -1202,3 +1202,49 @@ const BEHAVIORAL_QUESTIONS = [
   { id: "bq-impact-1", group: "Project Impact", question: "Tell me about the project you're most proud of. What was your specific contribution and its measurable impact?" },
   { id: "bq-impact-2", group: "Project Impact", question: "Describe a time you identified an opportunity for a data-driven improvement that nobody had asked you to look into." },
 ];
+
+// ---------------------------------------------------------------
+// COMPANIES
+// Each: { id, name, targetDate, rounds: [string], focusAreas: [string],
+//         resources: [{ label, href }] (optional) }
+// Freeform prep notes are typed in on the company's detail page and
+// autosave to localStorage — they aren't stored here.
+// ---------------------------------------------------------------
+
+const COMPANIES = [
+  {
+    id: "example-company",
+    name: "Example Company — edit or delete me",
+    targetDate: "TBD",
+    rounds: [
+      "Recruiter screen",
+      "Technical phone screen (SQL / Python / stats)",
+      "Onsite: coding round",
+      "Onsite: ML system design",
+      "Onsite: behavioral / cross-functional",
+    ],
+    focusAreas: [
+      "Replace with what this company's interview loop actually emphasizes",
+      "e.g. SQL fluency, a specific ML domain, a take-home format, etc.",
+    ],
+    resources: [
+      { label: "Company engineering blog", href: "https://example.com" },
+    ],
+  },
+];
+
+// ---------------------------------------------------------------
+// PROJECTS
+// Each: { id, title, blurb }
+// This is just the project's identity — all prep content is a single
+// freeform notes box on the project's detail page, autosaved to
+// localStorage, same pattern as Behavioral notes.
+// ---------------------------------------------------------------
+
+const PROJECTS = [
+  {
+    id: "example-project",
+    title: "Example Project — edit or delete me",
+    blurb: "One-line description of the project, shown on its card.",
+  },
+];

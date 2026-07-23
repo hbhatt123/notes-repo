@@ -27,6 +27,10 @@ zero server setup:
 - `#mldl`, `#genai`, `#sysdesign` — topic list for that category
 - `#topic/<id>` — full detail view for one topic
 - `#behavioral` — STAR guide, question bank, notes
+- `#companies` — grid of companies you're prepping for
+- `#companies/<id>` — one company's rounds, focus areas, resources, notes
+- `#projects` — grid of your projects
+- `#projects/<id>` — one project's freeform prep notes
 
 `app.js` listens for `hashchange` and re-renders `#app` accordingly.
 
@@ -39,6 +43,10 @@ sent over the network:
 - `prep_topics_done` — array of mastered topic ids
 - `prep_behavioral_prepared` — array of "prepared" behavioral question ids
 - `prep_behavioral_notes` — object mapping question id → your STAR notes
+- `prep_companies_done` — array of "prepared" company ids
+- `prep_company_notes` — object mapping company id → your freeform notes
+- `prep_projects_done` — array of "prepared" project ids
+- `prep_project_notes` — object mapping project id → your freeform notes
 - `prep_streak` — `{ lastDate, streak }`, updated whenever you check
   something off or save notes (not just on page load)
 - `prep_name` — the editable name shown on the dashboard greeting
@@ -132,8 +140,41 @@ GitHub hard-caps individual files at 100MB (way more than you'd ever
 need here) — keep images reasonably compressed so the site stays fast
 to load.
 
+### Add or edit a company prep plan
+
+Add an object to the `COMPANIES` array:
+
+```js
+{
+  id: "my-company",                  // unique slug, used in the URL
+  name: "My Company",
+  targetDate: "2026-09-01",          // freeform string — any format you like
+  rounds: ["Recruiter screen", "Onsite: coding", "Onsite: system design"],
+  focusAreas: ["Whatever this company's loop actually emphasizes"],
+  resources: [                       // optional
+    { label: "Engineering blog", href: "https://..." },
+  ],
+}
+```
+
+The freeform notes box on the company's detail page isn't part of this
+object — it's typed directly on the page and autosaves to
+`prep_company_notes`.
+
+### Add or edit a project
+
+Add an object to the `PROJECTS` array:
+
+```js
+{ id: "my-project", title: "My Project", blurb: "One-line description shown on the card." }
+```
+
+Same as companies — the actual prep content is a single freeform notes
+box on the project's detail page, autosaved to `prep_project_notes`.
+
 ## Notes
 
 - All ids should stay unique across their respective arrays — they're
-  used as localStorage keys and (for topics) as URL fragments.
+  used as localStorage keys and (for topics/companies/projects) as URL
+  fragments.
 - There's no build step: after editing `data.js`, just refresh the page.
