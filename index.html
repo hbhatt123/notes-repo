@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interview Prep Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-mark">🎯</span>
+          <span class="brand-name">Prep Dashboard</span>
+        </div>
+        <nav class="main-nav" id="main-nav">
+          <a href="#dashboard" data-route="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+          <a href="#dsa" data-route="dsa"><span class="nav-icon">🧮</span><span class="nav-label">DSA</span></a>
+          <a href="#mldl" data-route="mldl"><span class="nav-icon">🧠</span><span class="nav-label">ML/DL</span></a>
+          <a href="#genai" data-route="genai"><span class="nav-icon">✨</span><span class="nav-label">GenAI</span></a>
+          <a href="#sysdesign" data-route="sysdesign"><span class="nav-icon">🏗️</span><span class="nav-label">System Design</span></a>
+          <a href="#behavioral" data-route="behavioral"><span class="nav-icon">🎤</span><span class="nav-label">Behavioral</span></a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="app" class="app-main">
+      <!-- render() in app.js populates this element based on location.hash -->
+    </main>
+
+    <footer class="app-footer">
+      <p>All progress is saved locally in this browser (localStorage) — nothing is sent anywhere. Edit <code>data.js</code> to add or change content.</p>
+    </footer>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
