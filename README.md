@@ -22,7 +22,8 @@ The app uses hash-based routing, so it works from a `file://` URL with
 zero server setup:
 
 - `#dashboard` — overview, stats, category cards
-- `#dsa` — DSA problem checklists by category
+- `#dsa` — grid of DSA categories
+- `#dsa/<categoryId>` — grid of problem cards for one category
 - `#mldl`, `#genai`, `#sysdesign` — topic list for that category
 - `#topic/<id>` — full detail view for one topic
 - `#behavioral` — STAR guide, question bank, notes

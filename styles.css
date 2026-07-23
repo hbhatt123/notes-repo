@@ -530,63 +530,34 @@ button {
 
 /* ---------------- DSA section ---------------- */
 
-.dsa-category {
+.dsa-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.dsa-category-card {
+  display: block;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  margin-bottom: 14px;
-  overflow: hidden;
+  padding: 18px;
   box-shadow: var(--shadow-sm);
-}
-
-.dsa-category-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
-  user-select: none;
 }
 
-.dsa-category-icon {
-  font-size: 1.3rem;
+.dsa-category-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-soft);
 }
 
-.dsa-category-title {
-  font-weight: 700;
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.dsa-category-meta {
-  flex: 1;
-  min-width: 140px;
-}
-
-.dsa-category-count {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.dsa-caret {
-  font-size: 0.8rem;
-  color: var(--text-faint);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-}
-
-.dsa-category.is-open .dsa-caret {
-  transform: rotate(90deg);
+.dsa-category-detail-progress {
+  margin-bottom: 20px;
 }
 
 .dsa-problem-list {
-  display: none;
-  border-top: 1px solid var(--border);
-  padding: 16px 18px;
-}
-
-.dsa-category.is-open .dsa-problem-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;

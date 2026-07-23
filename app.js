@@ -162,7 +162,12 @@ function render() {
   let activeRoute = route;
   switch (route) {
     case "dsa":
-      node = renderDSA();
+      if (param) {
+        node = renderDSACategory(param);
+      } else {
+        node = renderDSA();
+      }
+      activeRoute = "dsa";
       break;
     case "mldl":
     case "genai":
@@ -343,74 +348,92 @@ function renderDashboard() {
 // 5b. Render: DSA
 // ---------------------------------------------------------------
 
-const dsaOpenState = {};
-
 function renderDSA() {
   const container = el(`
     <section>
       <div class="section-header">
         <h2 class="section-title"><span>🧮</span> DSA Practice</h2>
-        <p class="section-subtitle">Canonical problem names grouped by pattern, with a one-line nudge for each. Check a box to mark it solved — progress is saved automatically.</p>
+        <p class="section-subtitle">Canonical problem names grouped by pattern. Click a category to open its problem grid.</p>
       </div>
-      <div id="dsa-list"></div>
+      <div class="dsa-category-grid" id="dsa-category-grid"></div>
     </section>
   `);
 
-  const list = container.querySelector("#dsa-list");
+  const grid = container.querySelector("#dsa-category-grid");
   const doneSet = getDoneSet(STORAGE_KEYS.dsaDone);
 
   DSA_CATEGORIES.forEach((cat) => {
     const doneCount = cat.problems.filter((p) => doneSet.has(p.id)).length;
     const p = pct(doneCount, cat.problems.length);
-    const isOpen = !!dsaOpenState[cat.id];
 
-    const catEl = el(`
-      <div class="dsa-category ${isOpen ? "is-open" : ""}" data-cat="${cat.id}">
-        <div class="dsa-category-header">
-          <span class="dsa-category-icon">${cat.icon}</span>
-          <span class="dsa-category-title">${escapeHtml(cat.name)}</span>
-          <div class="dsa-category-meta">
-            <div class="dsa-category-count">${doneCount} / ${cat.problems.length} solved</div>
-            <div class="progress-track"><div class="progress-fill" style="width:${p}%"></div></div>
-          </div>
-          <span class="dsa-caret">▶</span>
+    const card = el(`
+      <a class="dsa-category-card" href="#dsa/${cat.id}">
+        <div class="category-card-head">
+          <span class="category-icon">${cat.icon}</span>
+          <span class="category-name">${escapeHtml(cat.name)}</span>
         </div>
-        <div class="dsa-problem-list"></div>
-      </div>
+        <div class="category-count">${doneCount} / ${cat.problems.length} solved</div>
+        <div class="progress-track"><div class="progress-fill" style="width:${p}%"></div></div>
+        <div class="progress-pct">${p}%</div>
+      </a>
     `);
 
-    const problemList = catEl.querySelector(".dsa-problem-list");
-    cat.problems.forEach((prob) => {
-      const isDone = doneSet.has(prob.id);
-      const row = el(`
-        <label class="dsa-problem ${isDone ? "is-done" : ""}" data-prob="${prob.id}">
-          <input type="checkbox" ${isDone ? "checked" : ""} />
-          <div class="dsa-problem-body">
-            <div class="dsa-problem-name">
-              ${escapeHtml(prob.name)}
-              <span class="difficulty difficulty-${prob.difficulty}">${prob.difficulty}</span>
-            </div>
-            <div class="dsa-problem-hint">${escapeHtml(prob.hint)}</div>
+    grid.appendChild(card);
+  });
+
+  return container;
+}
+
+function renderDSACategory(catId) {
+  const cat = DSA_CATEGORIES.find((c) => c.id === catId);
+  if (!cat) {
+    return el(`
+      <section>
+        <a class="back-link" href="#dsa">← Back to DSA Practice</a>
+        <p>Category not found.</p>
+      </section>
+    `);
+  }
+
+  const doneSet = getDoneSet(STORAGE_KEYS.dsaDone);
+  const doneCount = cat.problems.filter((p) => doneSet.has(p.id)).length;
+  const p = pct(doneCount, cat.problems.length);
+
+  const container = el(`
+    <section>
+      <a class="back-link" href="#dsa">← Back to DSA Practice</a>
+      <div class="section-header">
+        <h2 class="section-title"><span>${cat.icon}</span> ${escapeHtml(cat.name)}</h2>
+        <p class="section-subtitle">${doneCount} / ${cat.problems.length} solved. Check a box to mark it solved — progress is saved automatically.</p>
+      </div>
+      <div class="progress-track dsa-category-detail-progress"><div class="progress-fill" style="width:${p}%"></div></div>
+      <div class="dsa-problem-list" id="dsa-problem-grid"></div>
+    </section>
+  `);
+
+  const problemList = container.querySelector("#dsa-problem-grid");
+  cat.problems.forEach((prob) => {
+    const isDone = doneSet.has(prob.id);
+    const row = el(`
+      <label class="dsa-problem ${isDone ? "is-done" : ""}" data-prob="${prob.id}">
+        <input type="checkbox" ${isDone ? "checked" : ""} />
+        <div class="dsa-problem-body">
+          <div class="dsa-problem-name">
+            ${escapeHtml(prob.name)}
+            <span class="difficulty difficulty-${prob.difficulty}">${prob.difficulty}</span>
           </div>
-        </label>
-      `);
+          <div class="dsa-problem-hint">${escapeHtml(prob.hint)}</div>
+        </div>
+      </label>
+    `);
 
-      row.querySelector('input[type="checkbox"]').addEventListener("change", (e) => {
-        e.stopPropagation();
-        toggleDone(STORAGE_KEYS.dsaDone, prob.id);
-        dsaOpenState[cat.id] = true; // keep this category open after toggling
-        render(); // re-render to update all progress bars/stats consistently
-      });
-
-      problemList.appendChild(row);
-    });
-
-    catEl.querySelector(".dsa-category-header").addEventListener("click", () => {
-      dsaOpenState[cat.id] = !dsaOpenState[cat.id];
+    row.querySelector('input[type="checkbox"]').addEventListener("change", (e) => {
+      e.stopPropagation();
+      toggleDone(STORAGE_KEYS.dsaDone, prob.id);
       render();
     });
 
-    list.appendChild(catEl);
+    problemList.appendChild(row);
   });
 
   return container;
