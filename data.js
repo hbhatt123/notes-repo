@@ -1005,6 +1005,9 @@ A well-known trap in using click data as a relevance signal is position bias —
     title: "Top P Top K & Temperature",
     category: "genai",
     tier: "common",
+    attachments: [
+      { href: "assets/images/top-p-top-k-temperature-sampling-pipeline-cheatsheet.png", label: "flow" },
+    ],
     summary: "Effect of each on LLM output",
     content:
 `Temperature — reshapes the whole probability distribution before anything else. Divide logits by T.
