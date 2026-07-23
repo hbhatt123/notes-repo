@@ -1,9 +1,11 @@
 # Interview Prep Dashboard
 
 A tiny, static, single-page dashboard for tracking AI/ML and data science
-interview prep. Plain HTML/CSS/JS — no build step, no npm, no framework,
-no external network calls. Open `index.html` directly in a browser, or
-serve the folder with any static file server.
+interview prep. Plain HTML/CSS/JS — no build step, no npm, no framework.
+Open `index.html` directly in a browser, or serve the folder with any
+static file server. The only network calls it ever makes are to
+`api.github.com`, and only if you've opted in via Settings (see below) —
+with no token saved, it's 100% local, no network calls at all.
 
 ## Files
 
@@ -15,6 +17,12 @@ serve the folder with any static file server.
 - `app.js` — the router, localStorage helpers, and render functions.
   It knows how to *display* the data in `data.js`, but contains no
   topic text of its own.
+- `gh-edit.js` — pure, dependency-free helpers that insert new entries
+  into `data.js`'s source text (string-aware bracket matching, not a
+  full JS parser). No DOM, no network — usable in Node for testing.
+- `admin.js` — the optional "add from the browser" layer. Adds a
+  Settings gear and, once a GitHub token is saved, "+ Add" buttons that
+  commit straight to this repo via the GitHub Contents API.
 
 ## How routing works
 
@@ -171,6 +179,43 @@ Add an object to the `PROJECTS` array:
 
 Same as companies — the actual prep content is a single freeform notes
 box on the project's detail page, autosaved to `prep_project_notes`.
+
+## Adding content from the browser (GitHub sync)
+
+Instead of editing `data.js` by hand, you can add new topics, DSA
+problems, companies, projects, and file attachments directly from the
+UI — each one commits straight to this repo on GitHub, and the site
+redeploys automatically like any other push.
+
+### One-time setup
+
+1. On GitHub, go to **Settings → Developer settings → Personal access
+   tokens → Fine-grained tokens → Generate new token**.
+2. Set **Repository access** to **Only select repositories** → this
+   repo (`notes-repo`) — not "All repositories."
+3. Under **Permissions → Repository permissions**, set **Contents** to
+   **Read and write**. Leave everything else at "No access."
+4. Generate the token and copy it (starts with `github_pat_`).
+5. On the live site, click the ⚙️ gear icon (top right of the nav bar),
+   paste the token, and save. It'll validate against the repo before
+   saving as "connected."
+
+### What this does and doesn't do
+
+- The token is stored **only** in this browser's `localStorage`, for
+  this site's origin. It's never sent anywhere except `api.github.com`.
+- Scoped this way, the absolute worst case if it ever leaked is that
+  someone could read/write files in *this one repo* — not your other
+  repos, not your GitHub account, not anything on your device.
+- "+ Add" buttons only appear once a token is saved and validated —
+  with no token, the site is exactly the read + local-progress-only
+  tool it always was.
+- Every edit is checked for valid JavaScript syntax (via a parse-only
+  `new Function(...)` check) *before* it's pushed — if that check
+  fails, nothing is sent to GitHub.
+- There's currently no in-UI way to edit or delete existing entries —
+  only add new ones. Editing/deleting is still a `data.js` + git job.
+- Click "Clear token" in Settings any time to disconnect.
 
 ## Notes
 
