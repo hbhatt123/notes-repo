@@ -428,6 +428,12 @@ function renderDSACategory(catId) {
   const problemList = container.querySelector("#dsa-problem-grid");
   cat.problems.forEach((prob) => {
     const isDone = doneSet.has(prob.id);
+    // Only real LeetCode problems carry a `leetcode` url — some entries
+    // (Pandas/NumPy concepts, derived interview variants) have no LeetCode
+    // equivalent and intentionally omit it.
+    const leetcodeLink = prob.leetcode
+      ? `<a class="dsa-problem-leetcode" href="${escapeHtml(prob.leetcode)}" target="_blank" rel="noopener">Solve on LeetCode ↗</a>`
+      : "";
     const row = el(`
       <label class="dsa-problem ${isDone ? "is-done" : ""}" data-prob="${prob.id}">
         <input type="checkbox" ${isDone ? "checked" : ""} />
@@ -437,6 +443,7 @@ function renderDSACategory(catId) {
             <span class="difficulty difficulty-${prob.difficulty}">${prob.difficulty}</span>
           </div>
           <div class="dsa-problem-hint">${escapeHtml(prob.hint)}</div>
+          ${leetcodeLink}
         </div>
       </label>
     `);
@@ -446,6 +453,13 @@ function renderDSACategory(catId) {
       toggleDone(STORAGE_KEYS.dsaDone, prob.id);
       render();
     });
+
+    const lcLink = row.querySelector(".dsa-problem-leetcode");
+    if (lcLink) {
+      // Prevent the enclosing <label> from also toggling the checkbox
+      // when the user is just clicking through to LeetCode.
+      lcLink.addEventListener("click", (e) => e.stopPropagation());
+    }
 
     problemList.appendChild(row);
   });

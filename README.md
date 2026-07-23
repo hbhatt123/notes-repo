@@ -86,6 +86,15 @@ Find (or add) a category in `DSA_CATEGORIES`, then add an object to its
 To add a whole new category, copy the shape of an existing entry in
 `DSA_CATEGORIES` (`id`, `name`, `icon`, `problems`).
 
+To link a problem to LeetCode, add a `leetcode` field with the exact
+problem URL — only include it if the problem is a real LeetCode
+problem (the Pandas/NumPy entries and a couple of derived interview
+variants aren't, and intentionally have no link):
+
+```js
+{ id: "as-two-sum", name: "Two Sum", difficulty: "Easy", leetcode: "https://leetcode.com/problems/two-sum/", hint: "..." }
+```
+
 ### Add or edit a behavioral question
 
 Add an object to `BEHAVIORAL_QUESTIONS`:
