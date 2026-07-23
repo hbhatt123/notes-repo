@@ -326,7 +326,7 @@ button {
 
 .topic-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
@@ -583,22 +583,29 @@ button {
 .dsa-problem-list {
   display: none;
   border-top: 1px solid var(--border);
+  padding: 16px 18px;
 }
 
 .dsa-category.is-open .dsa-problem-list {
-  display: block;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
 }
 
 .dsa-problem {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.dsa-problem:last-child {
-  border-bottom: none;
+.dsa-problem:hover {
+  border-color: var(--accent-soft);
+  box-shadow: var(--shadow-sm);
 }
 
 .dsa-problem input[type="checkbox"] {
