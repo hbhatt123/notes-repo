@@ -1247,4 +1247,5 @@ const PROJECTS = [
     title: "Example Project — edit or delete me",
     blurb: "One-line description of the project, shown on its card.",
   },
+  { id: "zzz-live-test-safe-to-delete", title: "ZZZ LIVE TEST - safe to delete", blurb: "Created by an automated live verification of the GitHub-sync feature. Delete me." },
 ];
