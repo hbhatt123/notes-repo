@@ -497,6 +497,24 @@ function renderTopicDetail(id) {
 
   const keyPointsHtml = topic.keyPoints.map((k) => `<li>${escapeHtml(k)}</li>`).join("");
 
+  // Optional image: { src: "assets/images/foo.png", alt: "..." }
+  const imageHtml = topic.image
+    ? `<img class="topic-image" src="${escapeHtml(topic.image.src)}" alt="${escapeHtml(topic.image.alt || "")}" />`
+    : "";
+
+  // Optional file attachments: [{ href: "assets/files/foo.pdf", label: "..." }]
+  const attachmentsHtml = topic.attachments && topic.attachments.length
+    ? `<div class="attachments-box">
+         <h3>Attachments</h3>
+         <ul>${topic.attachments
+           .map(
+             (a) =>
+               `<li><a href="${escapeHtml(a.href)}" target="_blank" rel="noopener">📎 ${escapeHtml(a.label)}</a></li>`
+           )
+           .join("")}</ul>
+       </div>`
+    : "";
+
   const container = el(`
     <section>
       <a class="back-link" href="#${meta.route}">← Back to ${meta.name}</a>
@@ -512,7 +530,9 @@ function renderTopicDetail(id) {
           </label>
         </div>
         <p class="topic-detail-summary">${escapeHtml(topic.summary)}</p>
+        ${imageHtml}
         <div class="topic-body">${paragraphs}</div>
+        ${attachmentsHtml}
         <div class="keypoints-box">
           <h3>If you remember nothing else</h3>
           <ul>${keyPointsHtml}</ul>

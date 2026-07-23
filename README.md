@@ -96,6 +96,32 @@ Add an object to `BEHAVIORAL_QUESTIONS`:
 `group` just controls which heading the question is clustered under on
 the page — use an existing group name or introduce a new one.
 
+### Add an image or PDF to a topic
+
+1. Drop the file into `assets/images/` (images) or `assets/files/` (PDFs,
+   slides, etc.) — create the folders if they don't exist.
+2. Reference it from that topic's object in `data.js`:
+
+```js
+{
+  id: "activation-functions",
+  ...
+  image: { src: "assets/images/relu-vs-gelu.png", alt: "ReLU vs GELU curves" },
+  attachments: [
+    { href: "assets/files/activation-cheatsheet.pdf", label: "Activation function cheat sheet" },
+  ],
+  content: `...`,
+}
+```
+
+`image` renders once, right under the summary. `attachments` renders as
+a list of download/open links right after the body text. Both are
+optional — omit either field if a topic doesn't need it.
+
+GitHub hard-caps individual files at 100MB (way more than you'd ever
+need here) — keep images reasonably compressed so the site stays fast
+to load.
+
 ## Notes
 
 - All ids should stay unique across their respective arrays — they're
