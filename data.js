@@ -630,6 +630,52 @@ Interview-relevant point: embedding model and vector database are decoupled choi
       "Changing embedding models requires re-embedding and re-indexing the whole corpus"
     ]
   },
+  {
+    id: "transformer-basics",
+    title: "Transformer Basics",
+    category: "genai",
+    tier: "core",
+    summary: "The core idea behind every modern LLM: turn text into vectors, let each token look at every other token via self-attention, and stack that many times.",
+    content:
+`Text first gets tokenized into subword units and mapped to learned embedding vectors. Since attention itself has no sense of order, a positional encoding (learned or sinusoidal, or relative-position schemes like RoPE in most current LLMs) is added so the model knows token 3 comes before token 7.
+
+Self-attention is the mechanism that makes transformers work: for every token, the model computes a query, key, and value vector, scores the query against every other token's key to get attention weights (via scaled dot-product + softmax), and uses those weights to blend the value vectors into a new representation for that token. In plain terms — each token asks "which other tokens are relevant to me right now?" and pulls information from them, all in parallel, which is what makes transformers so much more parallelizable to train than RNNs that had to process tokens one at a time.
+
+Multi-head attention runs several of these attention computations in parallel with different learned projections, so different heads can specialize (one might track syntactic dependencies, another coreference, another local word order). Each transformer block stacks multi-head attention with a position-wise feedforward network, wrapped in residual connections and layer normalization — residuals are what make it practical to stack dozens of these blocks without gradients vanishing.
+
+For generative LLMs specifically (GPT-style, decoder-only), attention is causally masked so a token can only attend to earlier tokens, never future ones — this is what makes autoregressive, left-to-right generation possible: the model predicts the next token, appends it, and repeats. This is distinct from the original encoder-decoder transformer (used for translation) and encoder-only models like BERT, which attend bidirectionally and are suited to understanding tasks rather than open-ended generation.`,
+    keyPoints: [
+      "Tokens → embeddings → add positional information (order isn't implicit in attention)",
+      "Self-attention: each token builds a query, compares to every key, blends values by attention weight",
+      "Multi-head attention lets different heads specialize in different relationships",
+      "Residual connections + layer norm are what make stacking dozens of blocks trainable",
+      "Decoder-only LLMs use causal masking so generation stays strictly left-to-right",
+      "Encoder-only (BERT) vs decoder-only (GPT) vs encoder-decoder differ in attention masking and task fit"
+    ]
+  },
+  {
+    id: "vllm",
+    title: "vLLM",
+    category: "genai",
+    tier: "common",
+    summary: "An open-source, high-throughput LLM inference and serving engine built around PagedAttention — the de facto standard for self-hosting LLMs efficiently.",
+    content:
+`Naive LLM serving wastes enormous amounts of GPU memory: each request's KV cache (the cached key/value attention tensors that let generation avoid recomputing attention over already-generated tokens) is typically allocated as one large contiguous block sized for the worst case, so memory gets fragmented and over-reserved, capping how many requests can run concurrently.
+
+vLLM's core contribution is PagedAttention, which borrows the idea of virtual memory paging from operating systems: instead of one contiguous KV cache block per request, the cache is split into fixed-size blocks that can live anywhere in GPU memory, with a lightweight block table mapping logical positions to physical blocks per request. This nearly eliminates fragmentation and enables memory sharing — for example, requests that share a prompt prefix (common in few-shot prompting or repeated system prompts) can literally share the same physical blocks instead of duplicating them.
+
+On top of that, vLLM uses continuous batching (also called in-flight batching): rather than waiting for an entire fixed batch to finish generating before starting new requests, finished sequences are evicted and new ones inserted into the batch every iteration, keeping GPU utilization high instead of leaving it idle waiting on the slowest sequence in a static batch.
+
+Practically, vLLM exposes an OpenAI-compatible API server, so it's often a drop-in replacement for hitting a hosted API when self-hosting open-weight models, and it supports tensor parallelism for splitting a model too large for one GPU across several. The interview-relevant tradeoff: vLLM optimizes for throughput (tokens/sec across many concurrent requests) more than single-request latency — for a single user waiting on one response, a simpler server can look competitive, but vLLM pulls ahead fast as concurrent request volume grows.`,
+    keyPoints: [
+      "PagedAttention splits the KV cache into fixed-size, non-contiguous blocks, like OS virtual memory paging",
+      "This eliminates memory fragmentation and enables sharing cached blocks across requests with a common prefix",
+      "Continuous batching swaps finished/new sequences into the batch every iteration instead of waiting for a fixed batch to drain",
+      "Ships an OpenAI-compatible API, making it a common drop-in for self-hosted open-weight models",
+      "Supports tensor parallelism to serve models too large for a single GPU",
+      "Optimized primarily for throughput under concurrent load, not single-request latency"
+    ]
+  },
 
   // ============================= ML SYSTEM DESIGN =============================
   {
