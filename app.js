@@ -399,6 +399,19 @@ function renderDSACategory(catId) {
   const doneCount = cat.problems.filter((p) => doneSet.has(p.id)).length;
   const p = pct(doneCount, cat.problems.length);
 
+  // Optional category-level file attachments: [{ href: "assets/files/foo.pdf", label: "..." }]
+  const attachmentsHtml = cat.attachments && cat.attachments.length
+    ? `<div class="attachments-box">
+         <h3>Attachments</h3>
+         <ul>${cat.attachments
+           .map(
+             (a) =>
+               `<li><a href="${escapeHtml(a.href)}" target="_blank" rel="noopener">📎 ${escapeHtml(a.label)}</a></li>`
+           )
+           .join("")}</ul>
+       </div>`
+    : "";
+
   const container = el(`
     <section>
       <a class="back-link" href="#dsa">← Back to DSA Practice</a>
@@ -407,6 +420,7 @@ function renderDSACategory(catId) {
         <p class="section-subtitle">${doneCount} / ${cat.problems.length} solved. Check a box to mark it solved — progress is saved automatically.</p>
       </div>
       <div class="progress-track dsa-category-detail-progress"><div class="progress-fill" style="width:${p}%"></div></div>
+      ${attachmentsHtml}
       <div class="dsa-problem-list" id="dsa-problem-grid"></div>
     </section>
   `);

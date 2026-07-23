@@ -1019,7 +1019,6 @@ const DSA_CATEGORIES = [
       { id: "as-best-time-stock", name: "Best Time to Buy and Sell Stock", difficulty: "Easy", hint: "Track the minimum price seen so far while scanning once left to right." },
       { id: "as-product-except-self", name: "Product of Array Except Self", difficulty: "Medium", hint: "Compute prefix products, then multiply in suffix products on a second pass, without division." },
       { id: "as-max-subarray", name: "Maximum Subarray", difficulty: "Medium", hint: "Kadane's algorithm: at each index decide whether to extend the running sum or restart from here." },
-      { id: "as-longest-substr", name: "Longest Substring Without Repeating Characters", difficulty: "Medium", hint: "Sliding window with a set/map of last-seen index; shrink the window when you hit a repeat." },
       { id: "as-merge-intervals", name: "Merge Intervals", difficulty: "Medium", hint: "Sort by start time first, then merge whenever the next interval overlaps the current one." },
     ],
   },
@@ -1040,6 +1039,9 @@ const DSA_CATEGORIES = [
     id: "two-pointers",
     name: "Two Pointers",
     icon: "👉",
+    attachments: [
+      { href: "assets/files/two-pointers-cheatsheet.pdf", label: "Two Pointers Cheat Sheet (PDF)" },
+    ],
     problems: [
       { id: "tp-valid-palindrome", name: "Valid Palindrome", difficulty: "Easy", hint: "Move inward pointers from both ends, skipping non-alphanumeric characters as you go." },
       { id: "tp-3sum", name: "3Sum", difficulty: "Medium", hint: "Sort first, fix one number, then two-pointer the rest of the array for the remaining pair." },
@@ -1047,6 +1049,23 @@ const DSA_CATEGORIES = [
       { id: "tp-trapping-rain", name: "Trapping Rain Water", difficulty: "Hard", hint: "Water trapped at each index is limited by the shorter of the max walls to its left and right." },
       { id: "tp-sort-colors", name: "Sort Colors", difficulty: "Medium", hint: "Dutch national flag: three pointers partition the array into 0s, 1s, and 2s in one pass." },
       { id: "tp-remove-duplicates", name: "Remove Duplicates from Sorted Array", difficulty: "Easy", hint: "A slow write-pointer only advances when the current value differs from the last kept value." },
+    ],
+  },
+  {
+    id: "sliding-window",
+    name: "Sliding Window",
+    icon: "📏",
+    attachments: [
+      { href: "assets/files/sliding-window-cheatsheet.pdf", label: "Sliding Window Cheat Sheet (PDF)" },
+    ],
+    problems: [
+      { id: "sw-longest-substr", name: "Longest Substring Without Repeating Characters", difficulty: "Medium", hint: "Grow the right edge, track last-seen index per char, and jump the left edge past any repeat." },
+      { id: "sw-at-most-k-distinct", name: "Longest Substring with At Most K Distinct Characters", difficulty: "Medium", hint: "Keep a frequency map; shrink from the left whenever the map holds more than k distinct keys." },
+      { id: "sw-exactly-k-distinct", name: "Longest Substring with Exactly K Distinct Characters", difficulty: "Medium", hint: "Compute atMost(k) − atMost(k−1) to turn an 'exactly' constraint into two 'at most' sliding windows." },
+      { id: "sw-char-replacement", name: "Longest Repeating Character Replacement", difficulty: "Medium", hint: "Window is valid while (window size − count of its most frequent char) ≤ k replacements." },
+      { id: "sw-max-consecutive-ones", name: "Max Consecutive Ones III", difficulty: "Medium", hint: "Same shape as character replacement: shrink whenever the window's zero-count exceeds k flips." },
+      { id: "sw-fruit-into-baskets", name: "Fruit Into Baskets", difficulty: "Medium", hint: "This is 'at most 2 distinct types' in disguise — reuse the at-most-K-distinct template with k=2." },
+      { id: "sw-min-window-substring", name: "Minimum Window Substring", difficulty: "Hard", hint: "Expand until every required character is covered, then greedily shrink from the left while still valid." },
     ],
   },
   {
