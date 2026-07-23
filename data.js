@@ -1000,6 +1000,48 @@ A well-known trap in using click data as a relevance signal is position bias —
       "Click-based relevance labels suffer position bias, which needs explicit correction to avoid a feedback loop"
     ]
   },
+  {
+    id: "top-p-top-k-temperature",
+    title: "Top P Top K & Temperature",
+    category: "genai",
+    tier: "common",
+    summary: "Effect of each on LLM output",
+    content:
+`Temperature — reshapes the whole probability distribution before anything else. Divide logits by T.
+
+Low T (e.g. 0.3) → sharper, more confident, more repetitive
+High T (e.g. 1.5) → flatter, more random, more diverse
+Applied first, since top-k/top-p operate on whatever shape temperature leaves behind
+
+Top-k — keeps a fixed number of the highest-probability tokens, discards the rest.
+
+Simple, predictable cutoff (e.g. always exactly 50 tokens)
+Weakness: doesn't adapt — can be too strict when the model is uncertain (chops off good options) or too loose when the model is confident (keeps junk)
+
+Top-p (nucleus sampling) — keeps the smallest set of tokens whose cumulative probability reaches p (e.g. 90%).
+
+Adaptive: pool shrinks when the model is confident, grows when it's uncertain
+Weakness: on a very flat/long-tail distribution, the pool can balloon to include hundreds of low-quality tokens
+
+How they combine:
+
+logits → ÷temperature → softmax → top-k filter → top-p filter → renormalize → sample
+
+Temperature sets how sharp the distribution is. Top-k sets a hard ceiling on candidates. Top-p then adaptively trims within that ceiling based on actual probability mass. Using top-k and top-p together is common precisely because top-k acts as a safety net against top-p's occasional long-tail problem.
+
+Quick reference table:
+
+Setting	Effect
+temperature ↓	more deterministic, safer
+temperature ↑	more random, more creative
+top-k = 1	greedy decoding (no randomness)
+top-k = 0	disabled (no filtering)
+top-p = 1.0	disabled (pure sampling)
+top-p ↓	fewer, more probable candidates`,
+    keyPoints: [
+
+    ]
+  },
 ];
 
 // ---------------------------------------------------------------
