@@ -124,6 +124,32 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
+// Click-to-enlarge lightbox for diagram images (topic images, flashcard
+// images). Keeps the inline image small while still letting a dense
+// diagram be read at full size.
+function openLightbox(src, alt) {
+  const existing = document.getElementById("lightbox-overlay");
+  if (existing) existing.remove();
+
+  const overlay = el(`
+    <div class="lightbox-overlay" id="lightbox-overlay">
+      <img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "")}" />
+    </div>
+  `);
+  overlay.addEventListener("click", () => overlay.remove());
+  document.addEventListener(
+    "keydown",
+    function onKey(e) {
+      if (e.key === "Escape") {
+        overlay.remove();
+        document.removeEventListener("keydown", onKey);
+      }
+    },
+    { once: false }
+  );
+  document.body.appendChild(overlay);
+}
+
 function pct(done, total) {
   if (!total) return 0;
   return Math.round((done / total) * 100);
@@ -665,8 +691,20 @@ function renderTopicDetail(id) {
     render();
   });
 
+  const topicImg = container.querySelector(".topic-image");
+  if (topicImg) {
+    topicImg.addEventListener("click", () => openLightbox(topicImg.src, topicImg.alt));
+  }
+
   container.querySelectorAll(".flashcard").forEach((card) => {
     card.addEventListener("click", () => card.classList.toggle("is-flipped"));
+    const img = card.querySelector(".flashcard-image");
+    if (img) {
+      img.addEventListener("click", (e) => {
+        e.stopPropagation(); // open the lightbox instead of flipping the card back
+        openLightbox(img.src, img.alt);
+      });
+    }
   });
 
   return container;
