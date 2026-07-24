@@ -658,6 +658,7 @@ For generative LLMs specifically (GPT-style, decoder-only), attention is causall
     title: "vLLM",
     category: "genai",
     tier: "common",
+    image: { src: "assets/images/vllm-architecture-diagram.svg", alt: "vLLM architecture: Client sends a request to the vLLM engine host (API server, Scheduler, Executor, plus continuous batching, chunked prefill, PagedAttention, prefix caching), which dispatches batches to a GPU cluster (GPU 0/1/2 with model shard + KV, plus FlashAttention, speculative decoding, quantization, MoE experts) and streams tokens back." },
     summary: "An open-source, high-throughput LLM inference and serving engine built around PagedAttention — the de facto standard for self-hosting LLMs efficiently.",
     content:
 `Naive LLM serving wastes enormous amounts of GPU memory: each request's KV cache (the cached key/value attention tensors that let generation avoid recomputing attention over already-generated tokens) is typically allocated as one large contiguous block sized for the worst case, so memory gets fragmented and over-reserved, capping how many requests can run concurrently.
@@ -674,6 +675,20 @@ Practically, vLLM exposes an OpenAI-compatible API server, so it's often a drop-
       "Ships an OpenAI-compatible API, making it a common drop-in for self-hosted open-weight models",
       "Supports tensor parallelism to serve models too large for a single GPU",
       "Optimized primarily for throughput under concurrent load, not single-request latency"
+    ],
+    flashcards: [
+      { q: "Continuous batching", a: "New requests join the running batch as soon as a GPU slot frees up. No waiting for a whole batch to finish before starting new ones. This keeps the GPU busy and boosts throughput." },
+      { q: "Prefix caching", a: "If two requests share the same starting text (like a system prompt), vLLM reuses the already-computed KV cache instead of recomputing it. Saves time on repeated prompts." },
+      { q: "Chunked prefill", a: "Long prompts are processed in smaller chunks instead of all at once. This lets prefill and decode work interleave smoothly, avoiding long delays for other users." },
+      { q: "PagedAttention", a: "Manages KV cache memory like an OS manages RAM — in small fixed-size \"pages\" instead of one big continuous block. Avoids wasted memory and lets many requests share GPU memory efficiently." },
+      { q: "KV cache", a: "Stores the key/value vectors from earlier tokens so the model doesn't recompute them for every new token. This is what makes decoding much faster than reprocessing the full prompt each time." },
+      { q: "Speculative decoding", a: "A small draft model guesses several tokens ahead; the big model verifies them all in one pass. Speeds up generation without changing output quality." },
+      { q: "Quantization (GPTQ / AWQ / FP8)", a: "Shrinks model weights (and sometimes KV cache) to lower precision numbers. Uses less GPU memory and runs faster, with a small, usually acceptable, quality trade-off." },
+      { q: "Tensor parallelism", a: "Splits a single model's layers across multiple GPUs so one huge model can run (or run faster) when it doesn't fit on one GPU. Each GPU computes part of every layer." },
+      { q: "Pipeline parallelism", a: "Splits the model into stages, with different GPUs handling different stages (like an assembly line). Useful for very large models across many GPUs." },
+      { q: "FlashAttention", a: "An optimized way to compute attention that avoids unnecessary memory reads/writes. Makes both training and inference significantly faster without changing results." },
+      { q: "Scheduler", a: "Decides which requests get GPU time next, balancing new prompts (prefill) and ongoing generations (decode) so no single request hogs resources." },
+      { q: "Guided/structured decoding", a: "Forces the model's output to follow a specific format (like JSON) by restricting which tokens are allowed at each step. Useful for API responses or structured data extraction." }
     ]
   },
 
