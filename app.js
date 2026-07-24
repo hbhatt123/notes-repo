@@ -580,6 +580,40 @@ function renderTopicDetail(id) {
     .join("");
 
   const keyPointsHtml = topic.keyPoints.map((k) => `<li>${escapeHtml(k)}</li>`).join("");
+  const keyPointsBoxHtml = topic.keyPoints.length
+    ? `<div class="keypoints-box">
+         <h3>If you remember nothing else</h3>
+         <ul>${keyPointsHtml}</ul>
+       </div>`
+    : "";
+
+  // Optional flashcards: [{ q, a, example? }] — rendered as a click-to-flip grid.
+  const flashcardsHtml = topic.flashcards && topic.flashcards.length
+    ? `<div class="flashcards-section">
+         <h3>Flashcards</h3>
+         <p class="flashcards-hint">Click a card to flip it.</p>
+         <div class="flashcard-grid">
+           ${topic.flashcards
+             .map(
+               (fc, i) => `
+             <div class="flashcard" data-flashcard="${i}">
+               <div class="flashcard-inner">
+                 <div class="flashcard-face flashcard-front">
+                   <span class="flashcard-label">Q</span>
+                   <p>${escapeHtml(fc.q)}</p>
+                 </div>
+                 <div class="flashcard-face flashcard-back">
+                   <span class="flashcard-label">A</span>
+                   <p>${escapeHtml(fc.a)}</p>
+                   ${fc.example ? `<p class="flashcard-example">${escapeHtml(fc.example)}</p>` : ""}
+                 </div>
+               </div>
+             </div>`
+             )
+             .join("")}
+         </div>
+       </div>`
+    : "";
 
   // Optional image: { src: "assets/images/foo.png", alt: "..." }
   const imageHtml = topic.image
@@ -617,10 +651,8 @@ function renderTopicDetail(id) {
         ${imageHtml}
         <div class="topic-body">${paragraphs}</div>
         ${attachmentsHtml}
-        <div class="keypoints-box">
-          <h3>If you remember nothing else</h3>
-          <ul>${keyPointsHtml}</ul>
-        </div>
+        ${keyPointsBoxHtml}
+        ${flashcardsHtml}
       </div>
     </section>
   `);
@@ -628,6 +660,10 @@ function renderTopicDetail(id) {
   container.querySelector("#detail-checkbox").addEventListener("change", () => {
     toggleDone(STORAGE_KEYS.topicsDone, topic.id);
     render();
+  });
+
+  container.querySelectorAll(".flashcard").forEach((card) => {
+    card.addEventListener("click", () => card.classList.toggle("is-flipped"));
   });
 
   return container;

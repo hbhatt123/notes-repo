@@ -1043,6 +1043,17 @@ top-p = 1.0	disabled (pure sampling)
 top-p ↓	fewer, more probable candidates`,
     keyPoints: [
 
+    ],
+    flashcards: [
+      { q: "What does temperature do?", a: "Reshapes the entire probability distribution before any filtering — divides logits by T.", example: "T=0.5 sharpens confidence (safer, more repetitive); T=1.5 flattens it (riskier, more diverse)." },
+      { q: "What does top-k do?", a: "Keeps only the k highest-probability tokens; fixed count regardless of shape.", example: "top-k=5 always keeps exactly 5 tokens, even if token #6 had almost the same probability as #5." },
+      { q: "What does top-p (nucleus) do?", a: "Keeps the smallest set of tokens whose cumulative probability ≥ p; adaptive size.", example: "if one token has 95% probability, top-p=0.9 might keep just that 1 token; if probability is spread thin, it might keep 200 tokens." },
+      { q: "Pipeline order?", a: "logits → temperature → softmax → top-k → top-p → renormalize → sample.", example: "temperature reshapes confidence first because k/p decisions depend on that shape." },
+      { q: "top-p = 1.0?", a: "No-op — keeps 100% of probability mass, so nothing is filtered. Equivalent to pure/ancestral sampling." },
+      { q: "top-k = 0?", a: "Convention = \"disabled,\" also a no-op. (Literal \"keep 0 tokens\" is undefined and never actually implemented.)" },
+      { q: "top-k = 1?", a: "Only the single highest-probability token survives → deterministic. Equivalent to greedy decoding.", example: "no matter how many times you sample, you get the same output — randomness is gone before the draw happens." },
+      { q: "Why use top-k AND top-p together instead of just top-p?", a: "Top-p alone can misbehave on a flat/long-tail distribution (includes too many near-equal tokens); top-k acts as a hard safety cap.", example: "distribution nearly uniform over 10,000 tokens → top-p=0.9 might keep thousands of tokens; top-k=50 stops that from happening." },
+      { q: "Trap to avoid", a: "Don't call top-p \"strictly better\" than top-k — they solve different failure modes, and combining them is intentional design, not redundancy." },
     ]
   },
 ];

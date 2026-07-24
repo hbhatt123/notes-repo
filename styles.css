@@ -528,6 +528,122 @@ button {
   margin-bottom: 6px;
 }
 
+/* ---------------- Flashcards ---------------- */
+
+.flashcards-section {
+  margin-top: 24px;
+}
+
+.flashcards-section h3 {
+  font-size: 1.05rem;
+  margin: 0 0 2px;
+}
+
+.flashcards-hint {
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  margin: 0 0 14px;
+}
+
+.flashcard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.flashcard {
+  perspective: 1200px;
+  height: 180px;
+  cursor: pointer;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: left;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+
+.flashcard.is-flipped .flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.flashcard-front {
+  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+  color: #fff;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.flashcard-front p {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 6px 0 0;
+}
+
+.flashcard-back {
+  background: var(--surface);
+  border: 1px solid var(--accent-soft);
+  transform: rotateY(180deg);
+}
+
+.flashcard-back p {
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+.flashcard-label {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+
+.flashcard-front .flashcard-label {
+  color: #fff;
+}
+
+.flashcard-back .flashcard-label {
+  color: var(--accent-dark);
+}
+
+.flashcard-example {
+  color: var(--text-muted);
+  font-style: italic;
+  border-top: 1px dashed var(--border);
+  padding-top: 6px;
+  margin-top: 8px !important;
+}
+
+@media (max-width: 900px) {
+  .flashcard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .flashcard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------------- DSA section ---------------- */
 
 .dsa-category-grid {
