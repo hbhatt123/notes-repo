@@ -632,6 +632,10 @@ html.gate-locked .app-shell {
   cursor: pointer;
 }
 
+.flashcard.has-image {
+  height: 320px;
+}
+
 .flashcard-inner {
   position: relative;
   width: 100%;
@@ -684,6 +688,16 @@ html.gate-locked .app-shell {
   font-size: 0.85rem;
   margin: 4px 0 0;
   line-height: 1.4;
+}
+
+.flashcard-image {
+  display: block;
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  margin-top: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .flashcard-label {

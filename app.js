@@ -587,7 +587,9 @@ function renderTopicDetail(id) {
        </div>`
     : "";
 
-  // Optional flashcards: [{ q, a, example? }] — rendered as a click-to-flip grid.
+  // Optional flashcards: [{ q, a, example?, image?: { src, alt } }] —
+  // rendered as a click-to-flip grid. `image` shows on the back face,
+  // under the answer/example.
   const flashcardsHtml = topic.flashcards && topic.flashcards.length
     ? `<div class="flashcards-section">
          <h3>Flashcards</h3>
@@ -596,7 +598,7 @@ function renderTopicDetail(id) {
            ${topic.flashcards
              .map(
                (fc, i) => `
-             <div class="flashcard" data-flashcard="${i}">
+             <div class="flashcard ${fc.image ? "has-image" : ""}" data-flashcard="${i}">
                <div class="flashcard-inner">
                  <div class="flashcard-face flashcard-front">
                    <span class="flashcard-label">Q</span>
@@ -606,6 +608,7 @@ function renderTopicDetail(id) {
                    <span class="flashcard-label">A</span>
                    <p>${escapeHtml(fc.a)}</p>
                    ${fc.example ? `<p class="flashcard-example">${escapeHtml(fc.example)}</p>` : ""}
+                   ${fc.image ? `<img class="flashcard-image" src="${escapeHtml(fc.image.src)}" alt="${escapeHtml(fc.image.alt || "")}" />` : ""}
                  </div>
                </div>
              </div>`

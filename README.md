@@ -173,6 +173,30 @@ GitHub hard-caps individual files at 100MB (way more than you'd ever
 need here) — keep images reasonably compressed so the site stays fast
 to load.
 
+### Add flashcards to a topic
+
+Add a `flashcards` array to a topic object — renders as a click-to-flip
+grid at the end of the topic page:
+
+```js
+{
+  id: "vllm",
+  ...
+  flashcards: [
+    {
+      q: "Continuous batching",
+      a: "New requests join the running batch as soon as a slot frees up.",
+      example: "Optional one-line example, shown in italics under the answer.",
+      image: { src: "assets/images/continuous-batching-diagram.png", alt: "..." },
+    },
+  ],
+}
+```
+
+`example` and `image` are both optional. `image` renders on the back
+of the card, under the answer — a card with an image gets a taller
+fixed height automatically so nothing gets clipped.
+
 ### Add or edit a company prep plan
 
 Add an object to the `COMPANIES` array:
