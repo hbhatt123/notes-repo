@@ -1297,5 +1297,5 @@ const COMPANIES = [
 // ---------------------------------------------------------------
 
 const PROJECTS = [
-  { id: "example-project", title: "Example Project — edit or delete me", blurb: "LIVE EDIT TEST 1784871567175" },
+  { id: "example-project", title: "Example Project — edit or delete me", blurb: "One-line description of the project, shown on its card." },
 ];
