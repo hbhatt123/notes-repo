@@ -583,8 +583,10 @@ button {
 }
 
 .flashcard-front {
-  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
-  color: #fff;
+  background: var(--accent-light);
+  border: 1px solid var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  color: var(--text);
   align-items: flex-start;
   justify-content: center;
 }
@@ -594,6 +596,7 @@ button {
   font-weight: 700;
   line-height: 1.35;
   margin: 6px 0 0;
+  color: var(--text);
 }
 
 .flashcard-back {
@@ -617,7 +620,7 @@ button {
 }
 
 .flashcard-front .flashcard-label {
-  color: #fff;
+  color: var(--accent-dark);
 }
 
 .flashcard-back .flashcard-label {
