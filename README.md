@@ -23,6 +23,31 @@ with no token saved, it's 100% local, no network calls at all.
 - `admin.js` — the optional "add from the browser" layer. Adds a
   Settings gear and, once a GitHub token is saved, "+ Add" buttons that
   commit straight to this repo via the GitHub Contents API.
+- `gate.js` — a lightweight password screen shown before the page
+  content (see "Password gate" below).
+- `robots.txt` — tells well-behaved crawlers not to index this site.
+
+## Password gate
+
+The page is behind a client-side password screen (`gate.js`) so it
+isn't casually browsable and stays out of Google. **This is a
+deterrent, not real security** — every file here, including `data.js`,
+is still directly fetchable by its exact URL, since GitHub Pages has
+no server-side access control. Someone who already knows/guesses a
+file's path bypasses the gate entirely. For actual access control,
+this would need to move behind something like Cloudflare Access.
+
+The password itself is never committed — only its SHA-256 hash, as
+`PASSWORD_HASH` in `gate.js`. To change the password:
+
+```
+node -e "console.log(require('crypto').createHash('sha256').update('newpassword').digest('hex'))"
+```
+
+and paste the resulting hash into `gate.js`. Anyone who previously
+unlocked the site in their browser stays unlocked (the flag lives in
+`localStorage`) until they clear site data — changing the password
+doesn't force existing sessions to re-enter it.
 
 ## How routing works
 

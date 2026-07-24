@@ -3,10 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Interview Prep Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Runs before first paint so the real content never flashes on
+    // screen before the gate check completes. See gate.js.
+    try {
+      if (localStorage.getItem("prep_gate_unlocked") !== "1") {
+        document.documentElement.classList.add("gate-locked");
+      }
+    } catch (e) {
+      document.documentElement.classList.add("gate-locked");
+    }
+  </script>
 </head>
 <body>
+  <div class="site-gate" id="site-gate">
+    <form class="site-gate-card" id="gate-form">
+      <div class="site-gate-mark">🔒</div>
+      <h1>Prep Dashboard</h1>
+      <p>Enter the password to continue.</p>
+      <input type="password" id="gate-password" autocomplete="current-password" autofocus />
+      <button type="submit" class="btn-primary">Unlock</button>
+      <div class="site-gate-error" id="gate-error"></div>
+    </form>
+  </div>
+  <script src="gate.js"></script>
+
   <div class="app-shell">
     <header class="topbar">
       <div class="topbar-inner">
