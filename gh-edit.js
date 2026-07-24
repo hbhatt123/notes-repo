@@ -145,6 +145,14 @@
     return src.slice(0, insertAt) + newFieldText + src.slice(insertAt);
   }
 
+  // Replaces the entire object literal found by findObjectById with
+  // `newObjectText` (a full `{ ... }` literal, same id inside). Used for
+  // editing an existing entry in place rather than appending a new one.
+  function replaceObjectById(src, containerArrayName, itemId, newObjectText) {
+    const { objStart, objEnd } = findObjectById(src, containerArrayName, itemId);
+    return src.slice(0, objStart) + newObjectText + src.slice(objEnd + 1);
+  }
+
   // --- String building helpers -------------------------------------------
 
   function jsStringEscape(str) {
@@ -172,6 +180,7 @@
 
   const api = {
     findMatchingBracket,
+    replaceObjectById,
     findTopLevelArrayStart,
     appendTopLevelArrayItem,
     findObjectById,

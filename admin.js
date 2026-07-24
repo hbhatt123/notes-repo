@@ -168,11 +168,13 @@
           return `
             <label class="admin-field">
               <span>${f.label}</span>
-              <textarea data-key="${f.key}" placeholder="${f.placeholder || ""}" rows="${f.rows || 4}"></textarea>
+              <textarea data-key="${f.key}" placeholder="${f.placeholder || ""}" rows="${f.rows || 4}">${escapeHtml(f.value || "")}</textarea>
             </label>`;
         }
         if (f.type === "select") {
-          const opts = f.options.map((o) => `<option value="${o}">${o}</option>`).join("");
+          const opts = f.options
+            .map((o) => `<option value="${o}" ${o === f.value ? "selected" : ""}>${o}</option>`)
+            .join("");
           return `
             <label class="admin-field">
               <span>${f.label}</span>
@@ -189,7 +191,7 @@
         return `
           <label class="admin-field">
             <span>${f.label}</span>
-            <input type="text" data-key="${f.key}" placeholder="${f.placeholder || ""}" />
+            <input type="text" data-key="${f.key}" placeholder="${f.placeholder || ""}" value="${escapeHtml(f.value || "")}" />
           </label>`;
       })
       .join("");
@@ -340,7 +342,7 @@
   }
 
   // ---------------------------------------------------------------
-  // 5. Add-entry actions
+  // 5. Add + Edit entry actions
   // ---------------------------------------------------------------
 
   async function commitDataJsEdit(mutateFn, commitMessage) {
@@ -361,6 +363,101 @@
     return id;
   }
 
+  function linesOf(text) {
+    return text.split("\n").map((s) => s.trim()).filter(Boolean);
+  }
+
+  // --- Shared text builders (used by both Add and Edit) -------------------
+
+  function buildTopicText(id, category, values) {
+    const keyPoints = linesOf(values.keyPoints)
+      .map((s) => `      "${GhEdit.jsStringEscape(s)}"`)
+      .join(",\n");
+    return (
+`{
+    id: "${id}",
+    title: "${GhEdit.jsStringEscape(values.title)}",
+    category: "${category}",
+    tier: "${values.tier}",
+    summary: "${GhEdit.jsStringEscape(values.summary)}",
+    content:
+\`${GhEdit.jsTemplateEscape(values.content.trim())}\`,
+    keyPoints: [
+${keyPoints}
+    ]
+  }`
+    );
+  }
+
+  function topicFromValues(id, category, values) {
+    return {
+      id,
+      title: values.title,
+      category,
+      tier: values.tier,
+      summary: values.summary,
+      content: values.content.trim(),
+      keyPoints: linesOf(values.keyPoints),
+    };
+  }
+
+  function buildDsaProblemText(id, values) {
+    const leetcodePart = values.leetcode.trim()
+      ? ` leetcode: "${GhEdit.jsStringEscape(values.leetcode.trim())}",`
+      : "";
+    return `{ id: "${id}", name: "${GhEdit.jsStringEscape(values.name)}", difficulty: "${values.difficulty}",${leetcodePart} hint: "${GhEdit.jsStringEscape(values.hint)}" }`;
+  }
+
+  function dsaProblemFromValues(id, values) {
+    return {
+      id,
+      name: values.name,
+      difficulty: values.difficulty,
+      ...(values.leetcode.trim() ? { leetcode: values.leetcode.trim() } : {}),
+      hint: values.hint,
+    };
+  }
+
+  function buildCompanyText(id, values) {
+    const rounds = linesOf(values.rounds);
+    const focusAreas = linesOf(values.focusAreas);
+    const roundsText = rounds.map((r) => `      "${GhEdit.jsStringEscape(r)}"`).join(",\n");
+    const focusText = focusAreas.map((f) => `      "${GhEdit.jsStringEscape(f)}"`).join(",\n");
+    return (
+`{
+    id: "${id}",
+    name: "${GhEdit.jsStringEscape(values.name)}",
+    targetDate: "${GhEdit.jsStringEscape(values.targetDate || "TBD")}",
+    rounds: [
+${roundsText || '      "TBD"'}
+    ],
+    focusAreas: [
+${focusText || '      "TBD"'}
+    ]
+  }`
+    );
+  }
+
+  function companyFromValues(id, values) {
+    return {
+      id,
+      name: values.name,
+      targetDate: values.targetDate || "TBD",
+      rounds: linesOf(values.rounds).length ? linesOf(values.rounds) : ["TBD"],
+      focusAreas: linesOf(values.focusAreas).length ? linesOf(values.focusAreas) : ["TBD"],
+    };
+  }
+
+  function buildProjectText(id, values) {
+    return `{ id: "${id}", title: "${GhEdit.jsStringEscape(values.title)}", blurb: "${GhEdit.jsStringEscape(values.blurb || "")}" }`;
+  }
+
+  function projectFromValues(id, values) {
+    return { id, title: values.title, blurb: values.blurb || "" };
+  }
+
+  // --- Topic: Add + Edit ---------------------------------------------------
+
   function openAddTopicForm(category) {
     if (!requireTokenOrPrompt()) return;
     const meta = CATEGORY_META[category];
@@ -380,44 +477,50 @@
         }
         const existingIds = new Set(TOPICS.map((t) => t.id));
         const id = uniqueId(GhEdit.slugify(values.title), existingIds);
-        const keyPoints = values.keyPoints
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((s) => `      "${GhEdit.jsStringEscape(s)}"`)
-          .join(",\n");
+        const elementText = buildTopicText(id, category, values);
 
-        const elementText =
-`{
-    id: "${id}",
-    title: "${GhEdit.jsStringEscape(values.title)}",
-    category: "${category}",
-    tier: "${values.tier}",
-    summary: "${GhEdit.jsStringEscape(values.summary)}",
-    content:
-\`${GhEdit.jsTemplateEscape(values.content.trim())}\`,
-    keyPoints: [
-${keyPoints}
-    ]
-  }`;
-
-        const newSrc = await commitDataJsEdit(
+        await commitDataJsEdit(
           (src) => GhEdit.appendTopLevelArrayItem(src, "TOPICS", elementText, 2),
           `Add topic: ${values.title} (via UI)`
         );
-        TOPICS.push({
-          id,
-          title: values.title,
-          category,
-          tier: values.tier,
-          summary: values.summary,
-          content: values.content.trim(),
-          keyPoints: values.keyPoints.split("\n").map((s) => s.trim()).filter(Boolean),
-        });
+        TOPICS.push(topicFromValues(id, category, values));
         render();
       },
     });
   }
+
+  function openEditTopicForm(topicId) {
+    if (!requireTokenOrPrompt()) return;
+    const topic = TOPICS.find((t) => t.id === topicId);
+    if (!topic) return;
+    openFormModal({
+      title: `✏️ Edit topic: ${topic.title}`,
+      submitLabel: "Save changes",
+      fields: [
+        { key: "title", label: "Title", type: "text", value: topic.title },
+        { key: "tier", label: "Tier", type: "select", options: ["core", "common", "advanced"], value: topic.tier },
+        { key: "summary", label: "One-sentence summary", type: "text", value: topic.summary },
+        { key: "content", label: "Content (blank line = new paragraph)", type: "textarea", rows: 8, value: topic.content },
+        { key: "keyPoints", label: "Key points (one per line)", type: "textarea", rows: 4, value: topic.keyPoints.join("\n") },
+      ],
+      onSubmit: async (values) => {
+        if (!values.title || !values.summary || !values.content) {
+          throw new Error("Title, summary, and content are required.");
+        }
+        const elementText = buildTopicText(topicId, topic.category, values);
+
+        await commitDataJsEdit(
+          (src) => GhEdit.replaceObjectById(src, "TOPICS", topicId, elementText),
+          `Edit topic: ${values.title} (via UI)`
+        );
+        const idx = TOPICS.findIndex((t) => t.id === topicId);
+        TOPICS[idx] = topicFromValues(topicId, topic.category, values);
+        render();
+      },
+    });
+  }
+
+  // --- DSA problem: Add + Edit ---------------------------------------------
 
   function openAddDsaProblemForm(categoryId) {
     if (!requireTokenOrPrompt()) return;
@@ -436,28 +539,49 @@ ${keyPoints}
         const existingIds = new Set(cat.problems.map((p) => p.id));
         const prefix = categoryId.split("-").map((w) => w[0]).join("");
         const id = uniqueId(prefix + "-" + GhEdit.slugify(values.name), existingIds);
-
-        const leetcodePart = values.leetcode.trim()
-          ? ` leetcode: "${GhEdit.jsStringEscape(values.leetcode.trim())}",`
-          : "";
-        const elementText = `{ id: "${id}", name: "${GhEdit.jsStringEscape(values.name)}", difficulty: "${values.difficulty}",${leetcodePart} hint: "${GhEdit.jsStringEscape(values.hint)}" }`;
+        const elementText = buildDsaProblemText(id, values);
 
         await commitDataJsEdit((src) => {
           const { objStart, objEnd } = GhEdit.findObjectById(src, "DSA_CATEGORIES", categoryId);
           return GhEdit.appendToObjectField(src, objStart, objEnd, "problems", elementText, 6, "icon");
         }, `Add DSA problem: ${values.name} (via UI)`);
 
-        cat.problems.push({
-          id,
-          name: values.name,
-          difficulty: values.difficulty,
-          ...(values.leetcode.trim() ? { leetcode: values.leetcode.trim() } : {}),
-          hint: values.hint,
-        });
+        cat.problems.push(dsaProblemFromValues(id, values));
         render();
       },
     });
   }
+
+  function openEditDsaProblemForm(categoryId, problemId) {
+    if (!requireTokenOrPrompt()) return;
+    const cat = DSA_CATEGORIES.find((c) => c.id === categoryId);
+    const problem = cat.problems.find((p) => p.id === problemId);
+    if (!problem) return;
+    openFormModal({
+      title: `✏️ Edit problem: ${problem.name}`,
+      submitLabel: "Save changes",
+      fields: [
+        { key: "name", label: "Problem name", type: "text", value: problem.name },
+        { key: "difficulty", label: "Difficulty", type: "select", options: ["Easy", "Medium", "Hard"], value: problem.difficulty },
+        { key: "hint", label: "Hint (one line, not a solution)", type: "text", value: problem.hint },
+        { key: "leetcode", label: "LeetCode URL (optional, leave blank if none)", type: "text", value: problem.leetcode || "" },
+      ],
+      onSubmit: async (values) => {
+        if (!values.name || !values.hint) throw new Error("Name and hint are required.");
+        const elementText = buildDsaProblemText(problemId, values);
+
+        await commitDataJsEdit(
+          (src) => GhEdit.replaceObjectById(src, "DSA_CATEGORIES", problemId, elementText),
+          `Edit DSA problem: ${values.name} (via UI)`
+        );
+        const idx = cat.problems.findIndex((p) => p.id === problemId);
+        cat.problems[idx] = dsaProblemFromValues(problemId, values);
+        render();
+      },
+    });
+  }
+
+  // --- Company: Add + Edit --------------------------------------------------
 
   function openAddCompanyForm() {
     if (!requireTokenOrPrompt()) return;
@@ -474,40 +598,52 @@ ${keyPoints}
         if (!values.name) throw new Error("Company name is required.");
         const existingIds = new Set(COMPANIES.map((c) => c.id));
         const id = uniqueId(GhEdit.slugify(values.name), existingIds);
-        const rounds = values.rounds.split("\n").map((s) => s.trim()).filter(Boolean);
-        const focusAreas = values.focusAreas.split("\n").map((s) => s.trim()).filter(Boolean);
-
-        const roundsText = rounds.map((r) => `      "${GhEdit.jsStringEscape(r)}"`).join(",\n");
-        const focusText = focusAreas.map((f) => `      "${GhEdit.jsStringEscape(f)}"`).join(",\n");
-
-        const elementText =
-`{
-    id: "${id}",
-    name: "${GhEdit.jsStringEscape(values.name)}",
-    targetDate: "${GhEdit.jsStringEscape(values.targetDate || "TBD")}",
-    rounds: [
-${roundsText || '      "TBD"'}
-    ],
-    focusAreas: [
-${focusText || '      "TBD"'}
-    ]
-  }`;
+        const elementText = buildCompanyText(id, values);
 
         await commitDataJsEdit(
           (src) => GhEdit.appendTopLevelArrayItem(src, "COMPANIES", elementText, 2),
           `Add company: ${values.name} (via UI)`
         );
-        COMPANIES.push({
-          id,
-          name: values.name,
-          targetDate: values.targetDate || "TBD",
-          rounds: rounds.length ? rounds : ["TBD"],
-          focusAreas: focusAreas.length ? focusAreas : ["TBD"],
-        });
+        COMPANIES.push(companyFromValues(id, values));
         render();
       },
     });
   }
+
+  function openEditCompanyForm(companyId) {
+    if (!requireTokenOrPrompt()) return;
+    const company = COMPANIES.find((c) => c.id === companyId);
+    if (!company) return;
+    openFormModal({
+      title: `✏️ Edit company: ${company.name}`,
+      submitLabel: "Save changes",
+      description: company.resources && company.resources.length
+        ? "Note: resource links aren't editable from this form yet — they'll be kept as-is."
+        : "",
+      fields: [
+        { key: "name", label: "Company name", type: "text", value: company.name },
+        { key: "targetDate", label: "Target date", type: "text", value: company.targetDate },
+        { key: "rounds", label: "Interview rounds (one per line)", type: "textarea", rows: 4, value: company.rounds.join("\n") },
+        { key: "focusAreas", label: "Focus areas (one per line)", type: "textarea", rows: 3, value: company.focusAreas.join("\n") },
+      ],
+      onSubmit: async (values) => {
+        if (!values.name) throw new Error("Company name is required.");
+        const elementText = buildCompanyText(companyId, values);
+
+        await commitDataJsEdit(
+          (src) => GhEdit.replaceObjectById(src, "COMPANIES", companyId, elementText),
+          `Edit company: ${values.name} (via UI)`
+        );
+        const idx = COMPANIES.findIndex((c) => c.id === companyId);
+        const updated = companyFromValues(companyId, values);
+        if (company.resources) updated.resources = company.resources; // preserved as-is, form doesn't edit these
+        COMPANIES[idx] = updated;
+        render();
+      },
+    });
+  }
+
+  // --- Project: Add + Edit --------------------------------------------------
 
   function openAddProjectForm() {
     if (!requireTokenOrPrompt()) return;
@@ -522,13 +658,39 @@ ${focusText || '      "TBD"'}
         if (!values.title) throw new Error("Project title is required.");
         const existingIds = new Set(PROJECTS.map((p) => p.id));
         const id = uniqueId(GhEdit.slugify(values.title), existingIds);
-        const elementText = `{ id: "${id}", title: "${GhEdit.jsStringEscape(values.title)}", blurb: "${GhEdit.jsStringEscape(values.blurb || "")}" }`;
+        const elementText = buildProjectText(id, values);
 
         await commitDataJsEdit(
           (src) => GhEdit.appendTopLevelArrayItem(src, "PROJECTS", elementText, 2),
           `Add project: ${values.title} (via UI)`
         );
-        PROJECTS.push({ id, title: values.title, blurb: values.blurb || "" });
+        PROJECTS.push(projectFromValues(id, values));
+        render();
+      },
+    });
+  }
+
+  function openEditProjectForm(projectId) {
+    if (!requireTokenOrPrompt()) return;
+    const project = PROJECTS.find((p) => p.id === projectId);
+    if (!project) return;
+    openFormModal({
+      title: `✏️ Edit project: ${project.title}`,
+      submitLabel: "Save changes",
+      fields: [
+        { key: "title", label: "Project title", type: "text", value: project.title },
+        { key: "blurb", label: "One-line description", type: "text", value: project.blurb },
+      ],
+      onSubmit: async (values) => {
+        if (!values.title) throw new Error("Project title is required.");
+        const elementText = buildProjectText(projectId, values);
+
+        await commitDataJsEdit(
+          (src) => GhEdit.replaceObjectById(src, "PROJECTS", projectId, elementText),
+          `Edit project: ${values.title} (via UI)`
+        );
+        const idx = PROJECTS.findIndex((p) => p.id === projectId);
+        PROJECTS[idx] = projectFromValues(projectId, values);
         render();
       },
     });
@@ -596,6 +758,37 @@ ${focusText || '      "TBD"'}
     return btn;
   }
 
+  function makeEditButton(onClick, label) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "admin-edit-btn";
+    btn.title = "Edit";
+    btn.textContent = label || "✏️ Edit";
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation(); // don't trigger a card's own click-to-navigate/checkbox handlers
+      onClick();
+    });
+    return btn;
+  }
+
+  // Groups a detail page's existing "Mark ... / checkbox-row" control together
+  // with a new Edit button, so they sit as one flex item on the right side of
+  // .topic-detail-head instead of the edit button spreading the row apart.
+  function addEditButtonToDetailHead(app, onClick) {
+    const head = app.querySelector(".topic-detail-head");
+    if (!head) return;
+    const checkboxRow = head.querySelector(".checkbox-row");
+    const wrapper = document.createElement("div");
+    wrapper.className = "admin-head-actions";
+    if (checkboxRow) {
+      head.insertBefore(wrapper, checkboxRow);
+      wrapper.appendChild(checkboxRow);
+    } else {
+      head.appendChild(wrapper);
+    }
+    wrapper.appendChild(makeEditButton(onClick));
+  }
+
   function renderAdminHooks() {
     const gearExisting = document.getElementById("admin-settings-gear");
     if (!gearExisting) {
@@ -615,8 +808,13 @@ ${focusText || '      "TBD"'}
     const app = document.getElementById("app");
     const sectionHeader = app.querySelector(".section-header");
 
-    if ((route === "mldl" || route === "genai" || route === "sysdesign") && sectionHeader) {
-      sectionHeader.appendChild(makeAddButton("+ Add topic", () => openAddTopicForm(route)));
+    if (route === "mldl" || route === "genai" || route === "sysdesign") {
+      if (sectionHeader) sectionHeader.appendChild(makeAddButton("+ Add topic", () => openAddTopicForm(route)));
+      app.querySelectorAll(".topic-card[data-topic]").forEach((card) => {
+        const id = card.getAttribute("data-topic");
+        const bottom = card.querySelector(".topic-card-bottom");
+        if (bottom) bottom.appendChild(makeEditButton(() => openEditTopicForm(id), "✏️"));
+      });
     }
 
     if (route === "dsa" && param) {
@@ -639,20 +837,48 @@ ${focusText || '      "TBD"'}
         btn.classList.add("admin-add-btn-block");
         anchor.insertAdjacentElement("afterend", btn);
       }
+      // Per-problem edit icon on each card in the grid.
+      app.querySelectorAll(".dsa-problem[data-prob]").forEach((card) => {
+        const probId = card.getAttribute("data-prob");
+        const body = card.querySelector(".dsa-problem-body");
+        if (body) {
+          body.appendChild(makeEditButton(() => openEditDsaProblemForm(param, probId), "✏️ Edit"));
+        }
+      });
     }
 
-    if (route === "companies" && !param && sectionHeader) {
-      sectionHeader.appendChild(makeAddButton("+ Add company", openAddCompanyForm));
+    if (route === "companies" && !param) {
+      if (sectionHeader) sectionHeader.appendChild(makeAddButton("+ Add company", openAddCompanyForm));
+      app.querySelectorAll(".topic-card[data-company]").forEach((card) => {
+        const id = card.getAttribute("data-company");
+        const bottom = card.querySelector(".topic-card-bottom");
+        if (bottom) bottom.appendChild(makeEditButton(() => openEditCompanyForm(id), "✏️"));
+      });
     }
 
-    if (route === "projects" && !param && sectionHeader) {
-      sectionHeader.appendChild(makeAddButton("+ Add project", openAddProjectForm));
+    if (route === "companies" && param) {
+      addEditButtonToDetailHead(app, () => openEditCompanyForm(param));
+    }
+
+    if (route === "projects" && !param) {
+      if (sectionHeader) sectionHeader.appendChild(makeAddButton("+ Add project", openAddProjectForm));
+      app.querySelectorAll(".topic-card[data-project]").forEach((card) => {
+        const id = card.getAttribute("data-project");
+        const bottom = card.querySelector(".topic-card-bottom");
+        if (bottom) bottom.appendChild(makeEditButton(() => openEditProjectForm(id), "✏️"));
+      });
+    }
+
+    if (route === "projects" && param) {
+      addEditButtonToDetailHead(app, () => openEditProjectForm(param));
     }
 
     if (route === "topic" && param) {
       const topic = TOPICS.find((t) => t.id === param);
       const card = app.querySelector(".topic-detail-card");
       if (topic && card) {
+        addEditButtonToDetailHead(app, () => openEditTopicForm(param));
+
         const btn = makeAddButton("+ Add attachment", () =>
           openAddAttachmentForm({
             containerArrayName: "TOPICS",

@@ -180,12 +180,17 @@ Add an object to the `PROJECTS` array:
 Same as companies — the actual prep content is a single freeform notes
 box on the project's detail page, autosaved to `prep_project_notes`.
 
-## Adding content from the browser (GitHub sync)
+## Adding and editing content from the browser (GitHub sync)
 
-Instead of editing `data.js` by hand, you can add new topics, DSA
-problems, companies, projects, and file attachments directly from the
-UI — each one commits straight to this repo on GitHub, and the site
-redeploys automatically like any other push.
+Instead of editing `data.js` by hand, you can add and edit topics, DSA
+problems, companies, and projects (plus add file attachments) directly
+from the UI — each one commits straight to this repo on GitHub, and
+the site redeploys automatically like any other push.
+
+- **"+ Add ..."** buttons appear on each section's list page.
+- **"✏️ Edit"** buttons/icons appear on existing cards and detail
+  pages — they open the same form, pre-filled, and overwrite that
+  entry in place (same id, no duplicate created).
 
 ### One-time setup
 
@@ -207,14 +212,15 @@ redeploys automatically like any other push.
 - Scoped this way, the absolute worst case if it ever leaked is that
   someone could read/write files in *this one repo* — not your other
   repos, not your GitHub account, not anything on your device.
-- "+ Add" buttons only appear once a token is saved and validated —
-  with no token, the site is exactly the read + local-progress-only
-  tool it always was.
+- "+ Add" and "✏️ Edit" controls only appear once a token is saved and
+  validated — with no token, the site is exactly the read +
+  local-progress-only tool it always was.
 - Every edit is checked for valid JavaScript syntax (via a parse-only
   `new Function(...)` check) *before* it's pushed — if that check
   fails, nothing is sent to GitHub.
-- There's currently no in-UI way to edit or delete existing entries —
-  only add new ones. Editing/deleting is still a `data.js` + git job.
+- There's still no in-UI way to *delete* an entry, edit a company's
+  resource links, or edit flashcards/images — those remain a `data.js`
+  + git job for now.
 - Click "Clear token" in Settings any time to disconnect.
 
 ## Notes
