@@ -1024,6 +1024,13 @@ A well-known trap in using click data as a relevance signal is position bias —
     title: "ML System Design — What Actually Gets Asked",
     category: "sysdesign",
     tier: "core",
+    attachments: [
+      { href: "https://github.com/alirezadir/Machine-Learning-Interviews", label: "alirezadir/Machine-Learning-Interviews" },
+      { href: "https://www.hellointerview.com/learn/ml-system-design/in-a-hurry/introduction", label: "Hello Interview — ML System Design in a Hurry" },
+      { href: "https://github.com/khangich/machine-learning-interview", label: "khangich/machine-learning-interview" },
+      { href: "https://github.com/mallahyari/ml-practical-usecases", label: "mallahyari/ml-practical-usecases" },
+      { href: "https://aman.ai/sysdes/", label: "aman.ai/sysdes" },
+    ],
     summary: "A frequency-ranked map of what ML system design interviews at product companies actually ask, from must-know-cold topics down to company-specific niches.",
     content:
 `Across loops at Meta, Google, Amazon, LinkedIn, Netflix, Airbnb, and Uber, five topics show up in nearly every interview. The end-to-end design framework itself — problem formulation, success metrics, data/labeling, feature engineering, model selection, serving, A/B rollout, monitoring/retraining — is graded more heavily than any specific algorithm choice. Recommendation systems are almost always framed as a two-stage funnel: candidate generation (collaborative filtering, matrix factorization, two-tower embeddings) followed by ranking (pointwise/pairwise/listwise learning-to-rank). Feed, search, and ads ranking share that same multi-stage structure, with ads specifically framed around a pCTR × bid objective. Feature engineering and feature stores get probed specifically on training/serving consistency, one of the most commonly cited real-world failure modes. And evaluation methodology — offline metrics (precision/recall, AUC, nDCG/MRR/mAP) versus online metrics (CTR, engagement, conversion, counter-metrics like hides or reports) versus A/B test design — is now weighted as heavily as the architecture diagram itself.
