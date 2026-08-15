@@ -1305,6 +1305,17 @@ const COMPANIES = [
       { label: "Company engineering blog", href: "https://example.com" },
     ],
   },
+  {
+    id: "nvidia",
+    name: "NVIDIA",
+    targetDate: "TBD",
+    rounds: [
+      "TBD"
+    ],
+    focusAreas: [
+      "TBD"
+    ]
+  },
 ];
 
 // ---------------------------------------------------------------
