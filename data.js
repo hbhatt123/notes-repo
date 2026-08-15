@@ -33,6 +33,9 @@ const TOPICS = [
     title: "Activation Functions",
     category: "mldl",
     tier: "core",
+    attachments: [
+      { href: "assets/images/activation-functions-activation-function-pros-and-cons-11.webp", label: "activation-1" },
+    ],
     summary: "Activation functions inject non-linearity into a network, deciding what shapes it can model and how well gradients flow during training.",
     content:
 `Without a non-linear activation, stacking layers is pointless — a chain of linear transforms collapses into a single linear transform no matter how deep the network is. Activations are what actually give depth its expressive power.
