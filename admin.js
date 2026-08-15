@@ -185,7 +185,7 @@
           return `
             <label class="admin-field">
               <span>${f.label}</span>
-              <input type="file" data-key="${f.key}" accept="${f.accept || ""}" />
+              <input type="file" data-key="${f.key}" accept="${f.accept || ""}" ${f.multiple ? "multiple" : ""} />
             </label>`;
         }
         return `
@@ -230,7 +230,11 @@
       const values = {};
       fields.forEach((f) => {
         const el = form.querySelector(`[data-key="${f.key}"]`);
-        values[f.key] = f.type === "file" ? (el.files && el.files[0]) : el.value;
+        if (f.type === "file") {
+          values[f.key] = f.multiple ? Array.from(el.files || []) : (el.files && el.files[0]);
+        } else {
+          values[f.key] = el.value;
+        }
       });
 
       const submitBtn = form.querySelector('button[type="submit"]');
@@ -696,50 +700,63 @@ ${focusText || '      "TBD"'}
     });
   }
 
+  function defaultAttachmentLabel(baseName) {
+    return baseName.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   function openAddAttachmentForm({ containerArrayName, itemId, itemLabel, anchorFieldName, targetArray }) {
     if (!requireTokenOrPrompt()) return;
     openFormModal({
-      title: `+ Add attachment to ${itemLabel}`,
-      description: "Images go to <code>assets/images/</code>, everything else (PDFs, etc.) goes to <code>assets/files/</code>.",
+      title: `+ Add attachments to ${itemLabel}`,
+      description: "Images go to <code>assets/images/</code>, everything else (PDFs, etc.) goes to <code>assets/files/</code>. Select multiple files to attach them all at once. Label only applies when attaching a single file — with several, filenames are used instead.",
       submitLabel: "Upload & attach",
       fields: [
-        { key: "file", label: "File", type: "file" },
-        { key: "label", label: "Label (shown as the link text)", type: "text", placeholder: "e.g. Company comp bands (PDF)" },
+        { key: "files", label: "File(s)", type: "file", multiple: true },
+        { key: "label", label: "Label (single file only)", type: "text", placeholder: "e.g. Company comp bands (PDF)" },
       ],
       onSubmit: async (values) => {
-        if (!values.file) throw new Error("Choose a file first.");
-        if (!values.label) throw new Error("Label is required.");
+        const files = values.files || [];
+        if (!files.length) throw new Error("Choose at least one file first.");
+        if (files.length === 1 && !values.label) throw new Error("Label is required for a single file.");
 
-        const file = values.file;
-        const isImage = file.type.startsWith("image/");
-        const folder = isImage ? "assets/images" : "assets/files";
-        const ext = (file.name.split(".").pop() || "bin").toLowerCase();
-        const baseName = GhEdit.slugify(file.name.replace(/\.[^.]+$/, "")) || "file";
-        let repoPath = `${folder}/${itemId}-${baseName}.${ext}`;
+        const newAttachments = [];
+        const elementTexts = [];
 
-        const base64 = await readFileAsBase64(file);
+        for (const file of files) {
+          const isImage = file.type.startsWith("image/");
+          const folder = isImage ? "assets/images" : "assets/files";
+          const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+          const baseName = GhEdit.slugify(file.name.replace(/\.[^.]+$/, "")) || "file";
+          let repoPath = `${folder}/${itemId}-${baseName}.${ext}`;
 
-        try {
-          await ghPutBinaryFile(repoPath, base64, `Upload attachment for ${itemLabel} (via UI)`);
-        } catch (err) {
-          // Path collision — retry once with a short unique suffix.
-          if (String(err.message).includes("422")) {
-            repoPath = `${folder}/${itemId}-${baseName}-${Date.now().toString(36)}.${ext}`;
+          const base64 = await readFileAsBase64(file);
+
+          try {
             await ghPutBinaryFile(repoPath, base64, `Upload attachment for ${itemLabel} (via UI)`);
-          } else {
-            throw err;
+          } catch (err) {
+            // Path collision — retry once with a short unique suffix.
+            if (String(err.message).includes("422")) {
+              repoPath = `${folder}/${itemId}-${baseName}-${Date.now().toString(36)}.${ext}`;
+              await ghPutBinaryFile(repoPath, base64, `Upload attachment for ${itemLabel} (via UI)`);
+            } else {
+              throw err;
+            }
           }
+
+          const label = files.length === 1 ? values.label : defaultAttachmentLabel(baseName);
+          newAttachments.push({ href: repoPath, label });
+          elementTexts.push(`{ href: "${repoPath}", label: "${GhEdit.jsStringEscape(label)}" }`);
         }
 
-        const elementText = `{ href: "${repoPath}", label: "${GhEdit.jsStringEscape(values.label)}" }`;
+        const combinedElementText = elementTexts.join(",\n" + " ".repeat(6));
         await commitDataJsEdit((src) => {
           const { objStart, objEnd } = GhEdit.findObjectById(src, containerArrayName, itemId);
-          return GhEdit.appendToObjectField(src, objStart, objEnd, "attachments", elementText, 6, anchorFieldName);
-        }, `Attach file to ${itemLabel} (via UI)`);
+          return GhEdit.appendToObjectField(src, objStart, objEnd, "attachments", combinedElementText, 6, anchorFieldName);
+        }, `Attach ${files.length} file(s) to ${itemLabel} (via UI)`);
 
         const target = targetArray.find((x) => x.id === itemId);
         if (!target.attachments) target.attachments = [];
-        target.attachments.push({ href: repoPath, label: values.label });
+        target.attachments.push(...newAttachments);
         render();
       },
     });
