@@ -35,6 +35,7 @@ const TOPICS = [
     tier: "core",
     attachments: [
       { href: "assets/images/activation-functions-activation-function-pros-and-cons-11.webp", label: "activation-1" },
+      { href: "assets/images/activation-functions-activation-function-pros-and-cons-22.webp", label: "activation-2" },
     ],
     summary: "Activation functions inject non-linearity into a network, deciding what shapes it can model and how well gradients flow during training.",
     content:
