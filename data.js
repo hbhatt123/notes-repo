@@ -1039,7 +1039,14 @@ Under real time constraints, the highest-leverage order is: master the end-to-en
       "Feature stores get probed specifically for training/serving consistency — one of the most cited real production failure modes",
       "Evaluation is now weighted as heavily as architecture: offline metrics, online metrics, and A/B test design all matter",
       "LLM/GenAI system design (RAG, serving cost/latency, context management, guardrails) is 2026's fastest-growing tier",
-      "Infra-heavy topics (distributed training, orchestration) only matter for roles explicitly on an ML platform/infra track"
+      "Infra-heavy topics (distributed training, orchestration) only matter for roles explicitly on an ML platform/infra track",
+      "Best resources found (ranked by trustworthiness/depth)",
+      "alirezadir/Machine-Learning-Interviews (GitHub, 8.3k stars) — the most complete free framework: 9-step design formula, worked examples (recommendation, search, ads ranking, newsfeed, harmful content, PYMK), plus a 2026-updated section on Agentic AI/LLM system design.",
+      "Hello Interview — ML System Design in a Hurry — built by FAANG hiring managers/staff engineers; explains the 4 types of ML interviews (Applied ML System Design, ML Infra, Research, Research Engineering) and exactly what each rubric grades.",
+      "khangich/machine-learning-interview — real questions sourced from Meta, Amazon, Apple, Google, Microsoft, Snap, LinkedIn interviews.",
+      "mallahyari/ml-practical-usecases — database of 650 real ML system design case studies from 100+ companies, good for seeing how actual production systems are built.",
+      "Books: Designing Machine Learning Systems by Chip Huyen (production ML fundamentals — most recommended book across every source found) and Machine Learning System Design Interview by Ali Aminian & Alex Xu (structured, question-first interview prep).",
+      "aman.ai/sysdes — detailed worked breakdowns of specific systems like ad click prediction."
     ]
   },
   {
