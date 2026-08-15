@@ -1020,6 +1020,29 @@ A well-known trap in using click data as a relevance signal is position bias —
     ]
   },
   {
+    id: "ml-system-design-study-guide",
+    title: "ML System Design — What Actually Gets Asked",
+    category: "sysdesign",
+    tier: "core",
+    summary: "A frequency-ranked map of what ML system design interviews at product companies actually ask, from must-know-cold topics down to company-specific niches.",
+    content:
+`Across loops at Meta, Google, Amazon, LinkedIn, Netflix, Airbnb, and Uber, five topics show up in nearly every interview. The end-to-end design framework itself — problem formulation, success metrics, data/labeling, feature engineering, model selection, serving, A/B rollout, monitoring/retraining — is graded more heavily than any specific algorithm choice. Recommendation systems are almost always framed as a two-stage funnel: candidate generation (collaborative filtering, matrix factorization, two-tower embeddings) followed by ranking (pointwise/pairwise/listwise learning-to-rank). Feed, search, and ads ranking share that same multi-stage structure, with ads specifically framed around a pCTR × bid objective. Feature engineering and feature stores get probed specifically on training/serving consistency, one of the most commonly cited real-world failure modes. And evaluation methodology — offline metrics (precision/recall, AUC, nDCG/MRR/mAP) versus online metrics (CTR, engagement, conversion, counter-metrics like hides or reports) versus A/B test design — is now weighted as heavily as the architecture diagram itself.
+
+A second tier shows up in most loops but not all: data and labeling strategy (natural vs. human-annotated labels, missing negatives, class imbalance, weak/semi-supervised labeling, leakage); embeddings and representation learning plus nearest-neighbor retrieval (ANN, LSH, tree-based indexes); serving and deployment tradeoffs (batch vs. online vs. hybrid prediction, and compression via quantization/pruning/distillation for on-device inference); monitoring, drift, and retraining cadence; and fraud/trust-and-safety/content-moderation, which is really classification under heavy class imbalance with an adversarial opponent — common at Meta, LinkedIn, and fintechs specifically.
+
+LLM/GenAI system design — RAG pipelines, serving latency/cost tradeoffs, context-window management, evaluating generative output, guardrails — is the fastest-growing category in 2026 and now shows up even at companies without an obvious GenAI product surface, though it still fills fewer loops than recommendation, ranking, and CV. NLP-specific systems (classification, NER, sentiment, autocomplete, dialog) and computer vision systems (classification, two-stage vs. one-stage detection, image/video search) round out the topics worth dedicated prep. Below that sits a company- or role-specific tier — ML infra design (distributed training, pipeline orchestration, large-scale feature stores) for platform-focused teams, and domain-specific systems (self-driving perception, speech recognition, ETA prediction, demand forecasting) — worth deep prep only if targeting that specific org or track.
+
+Under real time constraints, the highest-leverage order is: master the end-to-end framework cold, then go deep on recommendation systems, ranking (feed/search/ads), and evaluation metrics — together these cover the large majority of what's actually asked. Add LLM/RAG system design if the company ships GenAI features, which is increasingly the default. Reserve infra-heavy prep (distributed training, orchestration) for roles explicitly on an ML platform/infra track.`,
+    keyPoints: [
+      "Tier 1, must know cold: the end-to-end framework, recommendation systems, feed/search/ads ranking, feature stores, evaluation methodology",
+      "Recommendation and ranking both follow a two-stage funnel: candidate generation, then pointwise/pairwise/listwise ranking",
+      "Feature stores get probed specifically for training/serving consistency — one of the most cited real production failure modes",
+      "Evaluation is now weighted as heavily as architecture: offline metrics, online metrics, and A/B test design all matter",
+      "LLM/GenAI system design (RAG, serving cost/latency, context management, guardrails) is 2026's fastest-growing tier",
+      "Infra-heavy topics (distributed training, orchestration) only matter for roles explicitly on an ML platform/infra track"
+    ]
+  },
+  {
     id: "top-p-top-k-temperature",
     title: "Top P Top K & Temperature",
     category: "genai",
